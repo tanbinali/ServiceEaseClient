@@ -1,0 +1,21 @@
+@import url("https://fonts.googleapis.com/css2?family=Electrolize&family=Saira+Stencil+One&display=swap");
+
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark, silk;
+}
+
+/* Default body font = Electrolize */
+body {
+  font-family: "Electrolize", sans-serif;
+}
+
+/* Headings = Saira Stencil One */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Saira Stencil One", sans-serif;
+}
