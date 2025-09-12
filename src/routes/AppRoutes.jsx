@@ -28,55 +28,65 @@ import PaymentSuccess from "../pages/PaymentSuccess";
 import PaymentFailed from "../pages/PaymentFailed";
 import PaymentCancelled from "../pages/PaymentCancelled";
 import FAQ from "../pages/FAQ";
+import ScrollToTop from "../components/ScrollToTop";
 
 const AppRoutes = () => {
   return (
-    <Routes>
-      {/* Public routes wrapped in MainLayout */}
-      <Route element={<MainLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/service/:id" element={<ServiceDetail />} />
-        <Route path="/category/:id" element={<CategoryServices />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/activate/:uid/:token" element={<ActivationPage />} />
-        <Route path="/resend-activation" element={<ResendActivation />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route
-          path="/password/reset/confirm/:uid/:token"
-          element={<ResetPasswordConfirm />}
-        />
-        <Route path="/about-us" element={<AboutUs />} />
-        <Route path="/TOS" element={<TermsOfService />} />
-        <Route path="/contact" element={<ContactUs />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/faq" element={<FAQ />} />
-      </Route>
+    <>
+      <ScrollToTop />
+      <Routes>
+        {/* Public routes wrapped in MainLayout */}
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/service/:id" element={<ServiceDetail />} />
+          <Route path="/category/:id" element={<CategoryServices />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/activate/:uid/:token" element={<ActivationPage />} />
+          <Route path="/resend-activation" element={<ResendActivation />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route
+            path="/password/reset/confirm/:uid/:token"
+            element={<ResetPasswordConfirm />}
+          />
+          <Route path="/about-us" element={<AboutUs />} />
+          <Route path="/TOS" element={<TermsOfService />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/faq" element={<FAQ />} />
+        </Route>
 
-      <Route
-        element={
-          <PrivateRoute>
-            <DashboardLayout />
-          </PrivateRoute>
-        }
-      >
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/dashboard/cart" element={<Cart />} />
-        <Route path="/dashboard/admin-carts" element={<AdminCarts />} />
-        <Route path="/dashboard/categories" element={<DashboardCategories />} />
-        <Route path="/dashboard/services" element={<DashboardServices />} />
-        <Route path="/dashboard/users" element={<DashboardUsers />} />
-        <Route path="/dashboard/reviews" element={<DashboardReviews />} />
-        <Route path="/dashboard/orders" element={<DashboardOrders />} />
-        <Route path="/dashboard/payment/success" element={<PaymentSuccess />} />
-        <Route path="/dashboard/payment/fail" element={<PaymentFailed />} />
         <Route
-          path="/dashboard/payment/cancel"
-          element={<PaymentCancelled />}
-        />
-      </Route>
-    </Routes>
+          element={
+            <PrivateRoute>
+              <DashboardLayout />
+            </PrivateRoute>
+          }
+        >
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/cart" element={<Cart />} />
+          <Route path="/dashboard/admin-carts" element={<AdminCarts />} />
+          <Route
+            path="/dashboard/categories"
+            element={<DashboardCategories />}
+          />
+          <Route path="/dashboard/services" element={<DashboardServices />} />
+          <Route path="/dashboard/users" element={<DashboardUsers />} />
+          <Route path="/dashboard/reviews" element={<DashboardReviews />} />
+          <Route path="/dashboard/orders" element={<DashboardOrders />} />
+          <Route
+            path="/dashboard/payment/success"
+            element={<PaymentSuccess />}
+          />
+          <Route path="/dashboard/payment/fail" element={<PaymentFailed />} />
+          <Route
+            path="/dashboard/payment/cancel"
+            element={<PaymentCancelled />}
+          />
+        </Route>
+      </Routes>
+    </>
   );
 };
 

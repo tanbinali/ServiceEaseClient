@@ -12,8 +12,37 @@ import {
   FaSpinner,
   FaFolderOpen,
   FaExclamationTriangle,
+  FaSearch,
+  FaFilter,
   FaCheck,
 } from "react-icons/fa";
+import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+};
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: "easeOut" },
+  },
+};
+const cardVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.4, ease: "easeOut" },
+  },
+};
+const buttonVariants = {
+  hover: { scale: 1.04 },
+  tap: { scale: 0.96 },
+};
 
 const DashboardCategories = () => {
   const [categories, setCategories] = useState([]);
@@ -28,6 +57,10 @@ const DashboardCategories = () => {
 
   const [nextPage, setNextPage] = useState(null);
   const [prevPage, setPrevPage] = useState(null);
+
+  // Filter state
+  const [filterTerm, setFilterTerm] = useState("");
+  const [filterActive, setFilterActive] = useState(null); // null means no filter applied
 
   // Fetch categories with status skeleton loader
   const fetchCategories = async (url = "categories/") => {
@@ -51,6 +84,21 @@ const DashboardCategories = () => {
     fetchCategories();
   }, []);
 
+  // Filtered categories according to filter input and active state
+  const filteredCategories = categories.filter((cat) => {
+    const matchesTerm =
+      cat.name.toLowerCase().includes(filterTerm.toLowerCase()) ||
+      (cat.description || "").toLowerCase().includes(filterTerm.toLowerCase());
+
+    // If active filter is null, show all
+    if (filterActive === null) return matchesTerm;
+
+    // Here category has no active state, so just simulate:
+    // We'll treat categories with description as "active" just for demonstration
+    const isActive = cat.description && cat.description.length > 0;
+    return matchesTerm && isActive === filterActive;
+  });
+
   // Add new category with button loading state
   const [adding, setAdding] = useState(false);
   const handleAddCategory = async () => {
@@ -64,9 +112,10 @@ const DashboardCategories = () => {
       setNewCategoryName("");
       setNewCategoryDescription("");
       fetchCategories();
+      toast.success("Category added successfully!");
     } catch (err) {
       console.error(err);
-      alert("Failed to add category");
+      toast.error("Failed to add category");
     }
     setAdding(false);
   };
@@ -88,9 +137,10 @@ const DashboardCategories = () => {
       setEditCategoryName("");
       setEditCategoryDescription("");
       fetchCategories();
+      toast.success("Category updated successfully!");
     } catch (err) {
       console.error(err);
-      alert("Failed to update category");
+      toast.error("Failed to update category");
     }
     setUpdating(false);
   };
@@ -104,16 +154,22 @@ const DashboardCategories = () => {
     try {
       await AuthApiClient.delete(`api/categories/${id}/`);
       fetchCategories();
+      toast.success("Category deleted successfully!");
     } catch (err) {
       console.error(err);
-      alert("Failed to delete category");
+      toast.error("Failed to delete category");
     }
     setDeletingId(null);
   };
 
   // Skeleton loader for cards
   const CategorySkeleton = () => (
-    <div className="flex flex-col md:flex-row items-start md:items-center justify-between animate-pulse p-3 rounded-xl border border-base-300 bg-base-100 gap-2">
+    <motion.div
+      className="flex flex-col md:flex-row items-start md:items-center justify-between animate-pulse p-3 rounded-xl border border-base-300 bg-base-100 gap-2"
+      initial="hidden"
+      animate="visible"
+      variants={cardVariants}
+    >
       <div className="flex-1 space-y-2">
         <div className="h-4 bg-base-200 rounded w-24"></div>
         <div className="h-3 bg-base-200 rounded w-36"></div>
@@ -122,37 +178,77 @@ const DashboardCategories = () => {
         <div className="w-8 h-8 bg-base-200 rounded"></div>
         <div className="w-8 h-8 bg-base-200 rounded"></div>
       </div>
-    </div>
+    </motion.div>
   );
-
-  // Visual state displays for loading, error, and empty
-  if (loading)
-    return (
-      <div className="flex flex-col items-center py-12">
-        <FaSpinner className="animate-spin text-4xl text-primary mb-2" />
-        <p className="text-center text-lg">Loading categories...</p>
-        {/* Skeletons for content */}
-        {[...Array(3)].map((_, i) => (
-          <CategorySkeleton key={i} />
-        ))}
-      </div>
-    );
-  if (error)
-    return (
-      <div className="flex flex-col items-center py-10">
-        <FaExclamationTriangle className="text-error text-3xl mb-2" />
-        <p className="text-center text-error">{error}</p>
-      </div>
-    );
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-7">
-      <h1 className="text-3xl font-bold mb-2 flex gap-2 items-center">
+      <motion.h1
+        className="text-3xl font-bold mb-2 flex gap-2 items-center"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
         <FaFolderOpen className="text-primary" /> Manage Categories
-      </h1>
+      </motion.h1>
+
+      {/* Filter Section */}
+      <motion.div
+        className="flex flex-col md:flex-row gap-4 items-center mb-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+      >
+        <div className="relative flex-grow max-w-md">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <FaSearch className="text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search categories..."
+            className="input input-bordered w-full pl-10"
+            value={filterTerm}
+            onChange={(e) => setFilterTerm(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-2 items-center">
+          <button
+            className={`btn btn-outline flex items-center gap-2 ${
+              filterActive === null ? "btn-active" : ""
+            }`}
+            onClick={() => setFilterActive(null)}
+            aria-pressed={filterActive === null}
+          >
+            <FaFilter /> All
+          </button>
+          <button
+            className={`btn btn-outline btn-success flex items-center gap-2 ${
+              filterActive === true ? "btn-active" : ""
+            }`}
+            onClick={() => setFilterActive(true)}
+            aria-pressed={filterActive === true}
+          >
+            <FaCheck /> With Description
+          </button>
+          <button
+            className={`btn btn-outline btn-error flex items-center gap-2 ${
+              filterActive === false ? "btn-active" : ""
+            }`}
+            onClick={() => setFilterActive(false)}
+            aria-pressed={filterActive === false}
+          >
+            <FaExclamationTriangle /> No Description
+          </button>
+        </div>
+      </motion.div>
 
       {/* Add New Category */}
-      <div className="flex flex-col md:flex-row gap-2 mb-6 items-center">
+      <motion.div
+        className="flex flex-col md:flex-row gap-2 mb-6 items-center"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
         <input
           type="text"
           placeholder="Category name"
@@ -167,125 +263,168 @@ const DashboardCategories = () => {
           onChange={(e) => setNewCategoryDescription(e.target.value)}
           className="input input-bordered flex-1"
         />
-        <button
+        <motion.button
           onClick={handleAddCategory}
           disabled={adding || !newCategoryName.trim()}
           className="btn btn-primary gap-2 flex items-center"
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
+          type="button"
         >
           {adding ? <FaSpinner className="animate-spin" /> : <FaPlus />} Add
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
       {/* Categories List */}
       <div className="space-y-2">
-        {categories.length === 0 && (
-          <div className="flex flex-col items-center py-10">
+        {loading && [...Array(3)].map((_, i) => <CategorySkeleton key={i} />)}
+
+        {!loading && filteredCategories.length === 0 && (
+          <motion.div
+            className="flex flex-col items-center py-10"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
             <FaFolderOpen className="text-base-200 text-5xl mb-2" />
             <p className="text-gray-500 text-lg">No categories found.</p>
-          </div>
+          </motion.div>
         )}
-        {categories.map((cat) => (
-          <div
-            key={cat.id}
-            className="flex flex-col md:flex-row items-start md:items-center justify-between p-3 rounded-xl border border-base-300 bg-base-100 gap-2"
-          >
-            {editCategoryId === cat.id ? (
-              <>
-                <input
-                  type="text"
-                  value={editCategoryName}
-                  onChange={(e) => setEditCategoryName(e.target.value)}
-                  className="input input-bordered flex-1"
-                />
-                <input
-                  type="text"
-                  value={editCategoryDescription}
-                  onChange={(e) => setEditCategoryDescription(e.target.value)}
-                  className="input input-bordered flex-1"
-                />
-                <div className="flex gap-2">
-                  <button
-                    className="btn btn-success gap-2"
-                    onClick={() => handleUpdateCategory(cat.id)}
-                    disabled={updating}
-                  >
-                    {updating ? (
-                      <FaSpinner className="animate-spin" />
-                    ) : (
-                      <FaSave />
-                    )}{" "}
-                    Save
-                  </button>
-                  <button
-                    className="btn btn-error gap-2"
-                    onClick={() => setEditCategoryId(null)}
-                    disabled={updating}
-                  >
-                    <FaTimes /> Cancel
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div>
-                  <p className="font-medium flex gap-2 items-center">
-                    <FaFolderOpen className="text-base-300" /> {cat.name}
-                  </p>
-                  <p className="text-sm text-base-content/60">
-                    {cat.description || (
-                      <span className="text-gray-400">No description</span>
-                    )}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    className="btn btn-sm btn-ghost gap-2"
-                    onClick={() => {
-                      setEditCategoryId(cat.id);
-                      setEditCategoryName(cat.name);
-                      setEditCategoryDescription(cat.description);
-                    }}
-                  >
-                    <FaEdit /> Edit
-                  </button>
-                  <button
-                    className={`btn btn-sm btn-error gap-2 ${
-                      deletingId === cat.id ? "opacity-60" : ""
-                    }`}
-                    onClick={() => handleDeleteCategory(cat.id)}
-                    disabled={deletingId === cat.id}
-                  >
-                    {deletingId === cat.id ? (
-                      <FaSpinner className="animate-spin" />
-                    ) : (
-                      <FaTrash />
-                    )}{" "}
-                    Delete
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        ))}
+
+        {!loading &&
+          filteredCategories.map((cat) => (
+            <motion.div
+              key={cat.id}
+              className="flex flex-col md:flex-row items-start md:items-center justify-between p-3 rounded-xl border border-base-300 bg-base-100 gap-2"
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.9 }}
+              transition={{ duration: 0.3 }}
+            >
+              {editCategoryId === cat.id ? (
+                <>
+                  <input
+                    type="text"
+                    value={editCategoryName}
+                    onChange={(e) => setEditCategoryName(e.target.value)}
+                    className="input input-bordered flex-1"
+                  />
+                  <input
+                    type="text"
+                    value={editCategoryDescription}
+                    onChange={(e) => setEditCategoryDescription(e.target.value)}
+                    className="input input-bordered flex-1"
+                  />
+                  <div className="flex gap-2">
+                    <motion.button
+                      className="btn btn-success gap-2"
+                      onClick={() => handleUpdateCategory(cat.id)}
+                      disabled={updating}
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      whileTap="tap"
+                    >
+                      {updating ? (
+                        <FaSpinner className="animate-spin" />
+                      ) : (
+                        <FaSave />
+                      )}{" "}
+                      Save
+                    </motion.button>
+                    <motion.button
+                      className="btn btn-error gap-2"
+                      onClick={() => setEditCategoryId(null)}
+                      disabled={updating}
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      whileTap="tap"
+                    >
+                      <FaTimes /> Cancel
+                    </motion.button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <p className="font-medium flex gap-2 items-center">
+                      <FaFolderOpen className="text-base-300" /> {cat.name}
+                    </p>
+                    <p className="text-sm text-base-content/60">
+                      {cat.description || (
+                        <span className="text-gray-400">No description</span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <motion.button
+                      className="btn btn-sm btn-ghost gap-2"
+                      onClick={() => {
+                        setEditCategoryId(cat.id);
+                        setEditCategoryName(cat.name);
+                        setEditCategoryDescription(cat.description);
+                      }}
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      whileTap="tap"
+                      type="button"
+                    >
+                      <FaEdit /> Edit
+                    </motion.button>
+                    <motion.button
+                      className={`btn btn-sm btn-error gap-2 ${
+                        deletingId === cat.id ? "opacity-60" : ""
+                      }`}
+                      onClick={() => handleDeleteCategory(cat.id)}
+                      disabled={deletingId === cat.id}
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      whileTap="tap"
+                      type="button"
+                    >
+                      {deletingId === cat.id ? (
+                        <FaSpinner className="animate-spin" />
+                      ) : (
+                        <FaTrash />
+                      )}{" "}
+                      Delete
+                    </motion.button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          ))}
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center gap-4 mt-2">
-        <button
+      <motion.div
+        className="flex justify-center gap-4 mt-2"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <motion.button
           onClick={() => prevPage && fetchCategories(prevPage)}
           disabled={!prevPage}
           className="btn btn-outline gap-2"
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
+          type="button"
         >
           <FaChevronLeft /> Previous
-        </button>
-        <button
+        </motion.button>
+        <motion.button
           onClick={() => nextPage && fetchCategories(nextPage)}
           disabled={!nextPage}
           className="btn btn-outline gap-2"
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
+          type="button"
         >
           Next <FaChevronRight />
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     </div>
   );
 };

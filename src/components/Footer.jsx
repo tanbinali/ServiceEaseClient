@@ -32,25 +32,33 @@ const Footer = () => {
             </p>
             <div className="flex gap-3">
               <a
-                href="#"
+                href="https://twitter.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 bg-neutral-700 rounded-lg hover:bg-neutral-600 hover:text-gray-400 transition-colors"
               >
                 <FaTwitter className="w-4 h-4 text-white" />
               </a>
               <a
-                href="#"
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 bg-neutral-700 rounded-lg hover:bg-neutral-600 hover:text-gray-400 transition-colors"
               >
                 <FaFacebook className="w-4 h-4 text-white" />
               </a>
               <a
-                href="#"
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 bg-neutral-700 rounded-lg hover:bg-neutral-600 hover:text-gray-400 transition-colors"
               >
                 <FaInstagram className="w-4 h-4 text-white" />
               </a>
               <a
-                href="#"
+                href="https://youtube.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 bg-neutral-700 rounded-lg hover:bg-neutral-600 hover:text-gray-400 transition-colors"
               >
                 <FaYoutube className="w-4 h-4 text-white" />
@@ -124,27 +132,42 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white">Contact Info</h3>
             <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <FaPhone className="w-4 h-4 text-white hover:text-gray-400 transition-colors" />
-                <span className="text-neutral-300">+880 1234 567890</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <FaEnvelope className="w-4 h-4 text-white hover:text-gray-400 transition-colors" />
-                <span className="text-neutral-300">
-                  support@serviceease.com
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <FaMapMarkerAlt className="w-4 h-4 text-white hover:text-gray-400 transition-colors" />
-                <span className="text-neutral-300">Chattogram, Bangladesh</span>
-              </div>
+              {/* Phone */}
+              <a
+                href="tel:+8801234567890"
+                className="flex items-center gap-3 text-neutral-300 hover:text-white transition-colors"
+              >
+                <FaPhone className="w-4 h-4" />
+                +880 1234 567890
+              </a>
+
+              {/* Email */}
+              <a
+                href="mailto:support@serviceease.com"
+                className="flex items-center gap-3 text-neutral-300 hover:text-white transition-colors"
+              >
+                <FaEnvelope className="w-4 h-4" />
+                support@serviceease.com
+              </a>
+
+              {/* Address (opens Google Maps) */}
+              <a
+                href="https://maps.google.com/?q=Chattogram,Bangladesh"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-neutral-300 hover:text-white transition-colors"
+              >
+                <FaMapMarkerAlt className="w-4 h-4" />
+                Chattogram, Bangladesh
+              </a>
             </div>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-neutral-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-neutral-400 text-sm flex items-center gap-1">
+        <div className="border-t border-neutral-700 mt-8 pt-8 flex flex-col md:flex-row items-center md:items-start justify-between gap-4 md:gap-0">
+          {/* Left side: Copyright */}
+          <p className="text-neutral-400 text-sm text-center md:text-left flex flex-wrap items-center gap-1">
             © {new Date().getFullYear()} ServiceEase. Made with{" "}
             <FaHeart className="text-white hover:text-gray-400 transition-colors inline mx-1" />{" "}
             by{" "}
@@ -159,7 +182,8 @@ const Footer = () => {
             using ReactJs & TailwindCss. All rights reserved.
           </p>
 
-          <div className="flex gap-6 mt-4 md:mt-0">
+          {/* Right side: Links */}
+          <div className="flex flex-wrap justify-center md:justify-end gap-4">
             <Link
               to="/privacy"
               className="text-neutral-400 hover:text-gray-400 text-sm transition-colors"

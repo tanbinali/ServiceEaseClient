@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import apiClient from "../services/api-client.js";
+import apiClient from "../services/api-client";
 import {
   FaStar,
   FaTrash,
@@ -10,7 +10,7 @@ import {
   FaSearch,
   FaTimes,
   FaUser,
-  FaCalendarAlt,
+  FaFolderOpen,
   FaExclamationTriangle,
   FaChartLine,
   FaUsers,
@@ -18,6 +18,8 @@ import {
   FaFrown,
   FaMeh,
 } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
 
 const DashboardReviews = () => {
   const [reviews, setReviews] = useState([]);
@@ -37,6 +39,24 @@ const DashboardReviews = () => {
 
   const pageSize = 10;
 
+  // Animations
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.4, ease: "easeOut" },
+    },
+  };
+  const buttonVariants = {
+    hover: { scale: 1.04 },
+    tap: { scale: 0.96 },
+  };
+
   // Fetch reviews
   const fetchReviews = async (pageNumber = 1) => {
     setLoading(true);
@@ -49,13 +69,12 @@ const DashboardReviews = () => {
       setCount(response.data.count || 0);
     } catch (err) {
       setError("Failed to fetch reviews. Please try again later.");
-      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch services to map IDs to names
+  // Fetch services for mapping
   const fetchServices = async () => {
     try {
       const response = await apiClient.get("/services/");
@@ -65,7 +84,7 @@ const DashboardReviews = () => {
       });
       setServicesMap(map);
     } catch (err) {
-      console.error("Failed to fetch services:", err);
+      // Optionally handle error
     }
   };
 
@@ -74,41 +93,32 @@ const DashboardReviews = () => {
     fetchServices();
   }, [page]);
 
-  // Delete a review
+  // Delete review
   const deleteReview = async (id) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this review? This action cannot be undone."
-      )
-    )
-      return;
-
+    if (!window.confirm("Are you sure you want to delete this review?")) return;
     setDeletingId(id);
     try {
-      await apiClient.delete(`/reviews/${id}/`);
-      setReviews((prev) => prev.filter((review) => review.id !== id));
+      await apiClient.delete(`/reviews/${id}`);
+      setReviews((prev) => prev.filter((rev) => rev.id !== id));
       setCount((prev) => prev - 1);
-    } catch (err) {
-      alert("Failed to delete review. Please try again.");
-      console.error(err);
+      toast.success("Review deleted.");
+    } catch {
+      toast.error("Failed to delete review.");
     } finally {
       setDeletingId(null);
     }
   };
 
-  const totalPages = Math.ceil(count / pageSize) || 1;
-
-  // Render stars with better styling
-  const renderStars = (rating) => {
-    return Array.from({ length: 5 }, (_, i) => (
+  // Render stars
+  const renderStars = (rating) =>
+    [...Array(5)].map((_, i) => (
       <FaStar
         key={i}
         className={`w-4 h-4 ${i < rating ? "text-warning" : "text-base-300"}`}
       />
     ));
-  };
 
-  // Get rating icon based on score
+  // Rating icon
   const getRatingIcon = (rating) => {
     if (rating >= 4) return <FaSmile className="text-success" />;
     if (rating >= 3) return <FaMeh className="text-warning" />;
@@ -118,7 +128,7 @@ const DashboardReviews = () => {
   // Filter & sort reviews
   const filteredReviews = reviews
     .filter((review) => {
-      const matchesSearch =
+      const matchesTerm =
         review.user?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         review.text?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (servicesMap[review.service] || "")
@@ -126,11 +136,12 @@ const DashboardReviews = () => {
           .includes(searchTerm.toLowerCase());
 
       const matchesRating =
-        ratingFilter === "all" || review.rating === parseInt(ratingFilter);
-      const matchesService =
-        serviceFilter === "all" || review.service === parseInt(serviceFilter);
+        ratingFilter === "all" || review.rating === Number(ratingFilter);
 
-      return matchesSearch && matchesRating && matchesService;
+      const matchesService =
+        serviceFilter === "all" || review.service === Number(serviceFilter);
+
+      return matchesTerm && matchesRating && matchesService;
     })
     .sort((a, b) =>
       dateSort === "newest"
@@ -138,9 +149,10 @@ const DashboardReviews = () => {
         : new Date(a.created_at) - new Date(b.created_at)
     );
 
-  const services = [...new Set(reviews.map((r) => r.service))];
+  // Unique services on current page
+  const servicesInReviews = [...new Set(reviews.map((r) => r.service))];
 
-  // Calculate rating distribution
+  // Rating distribution
   const ratingDistribution = reviews.reduce((acc, review) => {
     acc[review.rating] = (acc[review.rating] || 0) + 1;
     return acc;
@@ -149,117 +161,123 @@ const DashboardReviews = () => {
   return (
     <div className="max-w-7xl mx-auto p-6">
       {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-base-content mb-2">
+      <motion.div
+        className="mb-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.h2
+          className="text-3xl font-bold text-base-content mb-2"
+          variants={itemVariants}
+        >
           Customer Reviews
-        </h2>
-        <p className="text-base-content/70">
-          Manage and monitor all customer feedback and ratings
-        </p>
-      </div>
+        </motion.h2>
+        <motion.p
+          className="text-base-content/70"
+          variants={itemVariants}
+          transition={{ delay: 0.2 }}
+        >
+          Manage and monitor all feedback and ratings
+        </motion.p>
+      </motion.div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-base-100 p-6 rounded-2xl shadow-sm border border-base-300">
-          <div className="flex items-center">
-            <div className="rounded-2xl bg-primary/10 p-3 mr-4">
-              <FaStar className="text-2xl text-primary" />
-            </div>
-            <div>
-              <p className="text-sm text-base-content/60">Total Reviews</p>
-              <h3 className="text-2xl font-bold text-base-content">{count}</h3>
-            </div>
+      {/* Stats */}
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div
+          className="stat bg-base-100 p-4 rounded-2xl shadow border border-base-300"
+          variants={itemVariants}
+        >
+          <div className="stat-figure text-primary">
+            <FaStar className="text-2xl" />
           </div>
-        </div>
-
-        <div className="bg-base-100 p-6 rounded-2xl shadow-sm border border-base-300">
-          <div className="flex items-center">
-            <div className="rounded-2xl bg-secondary/10 p-3 mr-4">
-              <FaChartLine className="text-2xl text-secondary" />
-            </div>
-            <div>
-              <p className="text-sm text-base-content/60">Average Rating</p>
-              <h3 className="text-2xl font-bold text-base-content">
-                {reviews.length
-                  ? (
-                      reviews.reduce((acc, r) => acc + r.rating, 0) /
-                      reviews.length
-                    ).toFixed(1)
-                  : "0.0"}
-              </h3>
-            </div>
+          <div className="stat-title">Total Reviews</div>
+          <div className="stat-value">{count}</div>
+        </motion.div>
+        <motion.div
+          className="stat bg-base-100 p-4 rounded-2xl shadow border border-base-300"
+          variants={itemVariants}
+        >
+          <div className="stat-figure text-secondary">
+            <FaChartLine className="text-2xl" />
           </div>
-        </div>
-
-        <div className="bg-base-100 p-6 rounded-2xl shadow-sm border border-base-300">
-          <div className="flex items-center">
-            <div className="rounded-2xl bg-accent/10 p-3 mr-4">
-              <FaUsers className="text-2xl text-accent" />
-            </div>
-            <div>
-              <p className="text-sm text-base-content/60">Unique Users</p>
-              <h3 className="text-2xl font-bold text-base-content">
-                {new Set(reviews.map((r) => r.user)).size}
-              </h3>
-            </div>
+          <div className="stat-title">Average Rating</div>
+          <div className="stat-value">
+            {reviews.length
+              ? (
+                  reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+                ).toFixed(1)
+              : "0.0"}
           </div>
-        </div>
-
-        <div className="bg-base-100 p-6 rounded-2xl shadow-sm border border-base-300">
-          <div className="flex items-center">
-            <div className="rounded-2xl bg-info/10 p-3 mr-4">
-              <FaCalendarAlt className="text-2xl text-info" />
-            </div>
-            <div>
-              <p className="text-sm text-base-content/60">Services Reviewed</p>
-              <h3 className="text-2xl font-bold text-base-content">
-                {services.length}
-              </h3>
-            </div>
+        </motion.div>
+        <motion.div
+          className="stat bg-base-100 p-4 rounded-2xl shadow border border-base-300"
+          variants={itemVariants}
+        >
+          <div className="stat-figure text-info">
+            <FaUsers className="text-2xl" />
           </div>
-        </div>
-      </div>
+          <div className="stat-title">Unique Users</div>
+          <div className="stat-value">
+            {new Set(reviews.map((r) => r.user)).size}
+          </div>
+        </motion.div>
+        <motion.div
+          className="stat bg-base-100 p-4 rounded-2xl shadow border border-base-300"
+          variants={itemVariants}
+        >
+          <div className="stat-figure text-accent">
+            <FaFolderOpen className="text-2xl" />
+          </div>
+          <div className="stat-title">Services Reviewed</div>
+          <div className="stat-value">{servicesInReviews.length}</div>
+        </motion.div>
+      </motion.div>
 
-      {/* Filters Section */}
-      <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 mb-8 p-6">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4">
-          <div className="relative w-full lg:w-96">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      {/* Filter & Search*/}
+      <motion.div
+        className="bg-base-100 rounded-2xl shadow border border-base-300 p-4 mb-8"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
+        <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+          <div className="relative w-full md:w-96">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <FaSearch className="text-base-content/40" />
             </div>
             <input
               type="text"
-              placeholder="Search reviews by user, content, or service..."
+              placeholder="Search reviews..."
               className="input input-bordered w-full pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             {searchTerm && (
               <button
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
                 onClick={() => setSearchTerm("")}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
               >
-                <FaTimes className="text-base-content/40 hover:text-base-content/60" />
+                <FaTimes className="text-base-content/50 hover:text-base-content" />
               </button>
             )}
           </div>
-
-          <div className="flex gap-2">
-            <button
-              className="btn btn-outline gap-2"
+          <div className="flex gap-2 flex-wrap">
+            <motion.button
+              className="btn btn-outline flex items-center gap-1"
               onClick={() => setShowFilters(!showFilters)}
+              aria-expanded={showFilters}
+              aria-controls="filter-options"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
             >
               <FaFilter /> Filters
-              {(ratingFilter !== "all" || serviceFilter !== "all") && (
-                <span className="badge badge-primary badge-sm">
-                  {
-                    [ratingFilter, serviceFilter].filter((f) => f !== "all")
-                      .length
-                  }
-                </span>
-              )}
-            </button>
-
+            </motion.button>
             <select
               className="select select-bordered"
               value={dateSort}
@@ -271,169 +289,144 @@ const DashboardReviews = () => {
           </div>
         </div>
 
-        {/* Expanded Filters */}
-        {showFilters && (
-          <div className="mt-6 pt-6 border-t border-base-300 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="label">
-                <span className="label-text font-semibold">
-                  Filter by Rating
-                </span>
-              </label>
-              <select
-                className="select select-bordered w-full"
-                value={ratingFilter}
-                onChange={(e) => setRatingFilter(e.target.value)}
-              >
-                <option value="all">All Ratings</option>
-                {[5, 4, 3, 2, 1].map((rating) => (
-                  <option key={rating} value={rating}>
-                    {rating} Star{rating !== 1 ? "s" : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="label">
-                <span className="label-text font-semibold">
-                  Filter by Service
-                </span>
-              </label>
-              <select
-                className="select select-bordered w-full"
-                value={serviceFilter}
-                onChange={(e) => setServiceFilter(e.target.value)}
-              >
-                <option value="all">All Services</option>
-                {services.map((serviceId) => (
-                  <option key={serviceId} value={serviceId}>
-                    {servicesMap[serviceId] || `Service ${serviceId}`}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="md:col-span-2 flex justify-end gap-2">
-              <button
-                className="btn btn-ghost"
-                onClick={() => {
-                  setRatingFilter("all");
-                  setServiceFilter("all");
-                  setSearchTerm("");
-                }}
-              >
-                Clear All Filters
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Rating Distribution */}
-      <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-6 mb-8">
-        <h3 className="text-lg font-semibold text-base-content mb-4">
-          Rating Distribution
-        </h3>
-        <div className="grid grid-cols-5 gap-4">
-          {[5, 4, 3, 2, 1].map((rating) => (
-            <div key={rating} className="text-center">
-              <div className="flex justify-center mb-2">
-                {getRatingIcon(rating)}
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              id="filter-options"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-base-300 pt-4"
+            >
+              <div>
+                <label className="label">
+                  <span className="label-text font-semibold">
+                    Filter by Rating
+                  </span>
+                </label>
+                <select
+                  className="select select-bordered w-full"
+                  value={ratingFilter}
+                  onChange={(e) => setRatingFilter(e.target.value)}
+                >
+                  <option value="all">All Ratings</option>
+                  {[5, 4, 3, 2, 1].map((star) => (
+                    <option key={star} value={star}>
+                      {star} Star{star !== 1 ? "s" : ""}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div className="text-2xl font-bold text-base-content">
-                {ratingDistribution[rating] || 0}
+              <div>
+                <label className="label">
+                  <span className="label-text font-semibold">
+                    Filter by Service
+                  </span>
+                </label>
+                <select
+                  className="select select-bordered w-full"
+                  value={serviceFilter}
+                  onChange={(e) => setServiceFilter(e.target.value)}
+                >
+                  <option value="all">All Services</option>
+                  {Object.entries(servicesMap).map(([id, name]) => (
+                    <option key={id} value={id}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div className="text-sm text-base-content/60">
-                {rating} Star{rating !== 1 ? "s" : ""}
+
+              <div className="md:col-span-2 flex justify-end">
+                <button
+                  className="btn btn-ghost"
+                  onClick={() => {
+                    setRatingFilter("all");
+                    setServiceFilter("all");
+                    setSearchTerm("");
+                  }}
+                >
+                  Clear Filters
+                </button>
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       {/* Reviews Table */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-base-100 rounded-2xl shadow-sm border border-base-300">
-          <FaSpinner className="animate-spin text-4xl text-primary mb-4" />
+        <motion.div
+          className="flex flex-col items-center justify-center py-20 bg-base-100 rounded-xl shadow-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <FaSpinner className="animate-spin text-4xl mb-4 text-primary" />
           <p className="text-base-content/70">Loading reviews...</p>
-        </div>
+        </motion.div>
       ) : error ? (
-        <div className="alert alert-error rounded-2xl">
+        <motion.div
+          className="alert alert-error rounded-xl"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
           <FaExclamationTriangle />
           <span>{error}</span>
           <button
-            onClick={() => fetchReviews(page)}
             className="btn btn-ghost btn-sm"
+            onClick={() => fetchReviews(page)}
           >
-            Try Again
+            Retry
           </button>
-        </div>
-      ) : filteredReviews.length === 0 ? (
-        <div className="text-center py-16 bg-base-100 rounded-2xl border border-base-300">
-          <div className="text-5xl mb-4">🔍</div>
-          <h3 className="text-xl font-semibold text-base-content mb-2">
-            No reviews found
-          </h3>
-          <p className="text-base-content/70 mb-6">
-            {searchTerm || ratingFilter !== "all" || serviceFilter !== "all"
-              ? "Try adjusting your search or filters"
-              : "No reviews have been submitted yet"}
-          </p>
-          {(searchTerm ||
-            ratingFilter !== "all" ||
-            serviceFilter !== "all") && (
-            <button
-              onClick={() => {
-                setSearchTerm("");
-                setRatingFilter("all");
-                setServiceFilter("all");
-              }}
-              className="btn btn-primary"
-            >
-              Clear Filters
-            </button>
-          )}
-        </div>
+        </motion.div>
       ) : (
         <>
-          <div className="bg-base-100 rounded-2xl shadow-sm overflow-hidden border border-base-300 mb-6">
-            <div className="overflow-x-auto">
-              <table className="table table-zebra w-full">
-                <thead>
-                  <tr className="bg-base-200">
-                    <th className="text-base-content font-semibold">
-                      User & Rating
-                    </th>
-                    <th className="text-base-content font-semibold">
-                      Review Content
-                    </th>
-                    <th className="text-base-content font-semibold">Service</th>
-                    <th className="text-base-content font-semibold">Date</th>
-                    <th className="text-base-content font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+          <motion.div
+            className="overflow-x-auto rounded-xl shadow border border-base-300"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+          >
+            <table className="table table-zebra w-full">
+              <thead>
+                <tr>
+                  <th>User & Rating</th>
+                  <th>Review Content</th>
+                  <th>Service</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <AnimatePresence>
                   {filteredReviews.map((review) => (
-                    <tr key={review.id} className="hover:bg-base-200/50">
+                    <motion.tr
+                      key={review.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 20 }}
+                      transition={{ duration: 0.3 }}
+                    >
                       <td>
                         <div className="flex items-center space-x-3">
-                          <div className="avatar placeholder !flex !items-center !justify-center w-12 h-12 rounded-full bg-primary/10 text-primary">
+                          <div className="avatar placeholder rounded-full">
                             {review.user_profile_picture ? (
                               <img
                                 src={review.user_profile_picture}
                                 alt={review.user}
-                                className="rounded-full object-cover w-12 h-12"
+                                className="w-10 h-10 rounded-full object-cover"
                               />
                             ) : (
-                              <FaUser className="w-6 h-6" />
+                              <FaUser className="w-10 h-10 text-base-content/70" />
                             )}
                           </div>
                           <div>
-                            <div className="font-bold text-base-content">
-                              {review.user || "Anonymous User"}
+                            <div className="font-semibold">
+                              {review.user || "Unknown User"}
                             </div>
-                            <div className="flex items-center mt-1">
+                            <div className="flex items-center text-yellow-400">
                               {renderStars(review.rating)}
                               <span className="ml-2 text-sm text-base-content/60">
                                 ({review.rating})
@@ -442,102 +435,95 @@ const DashboardReviews = () => {
                           </div>
                         </div>
                       </td>
-
+                      <td>{review.text || <em>No review text.</em>}</td>
                       <td>
-                        <div className="text-base-content">
-                          {review.text || "No review text provided"}
-                        </div>
+                        {servicesMap[review.service] ||
+                          `Service #${review.service}`}
                       </td>
                       <td>
-                        <span className="badge badge-outline badge-primary">
-                          {servicesMap[review.service] ||
-                            `Service ${review.service}`}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="text-sm text-base-content/70">
-                          {new Date(review.created_at).toLocaleDateString()}
-                        </div>
-                        <div className="text-xs text-base-content/50">
+                        {new Date(review.created_at).toLocaleDateString()}
+                        <br />
+                        <small className="text-base-content/50">
                           {new Date(review.created_at).toLocaleTimeString()}
-                        </div>
+                        </small>
                       </td>
                       <td>
                         <button
-                          onClick={() => deleteReview(review.id)}
+                          className={`btn btn-error btn-sm flex items-center gap-1 ${
+                            deletingId === review.id ? "loading" : ""
+                          }`}
                           disabled={deletingId === review.id}
-                          className="btn btn-error btn-sm gap-2"
+                          onClick={() => deleteReview(review.id)}
+                          aria-label={`Delete review by ${
+                            review.user || "user"
+                          }`}
                         >
                           {deletingId === review.id ? (
                             <FaSpinner className="animate-spin" />
                           ) : (
                             <FaTrash />
                           )}
-                          Delete
                         </button>
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                </AnimatePresence>
+              </tbody>
+            </table>
+          </motion.div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center mt-8">
-              <div className="join">
-                <button
-                  className="join-item btn btn-outline"
-                  onClick={() => setPage(Math.max(1, page - 1))}
-                  disabled={page === 1}
-                >
-                  <FaChevronLeft />
-                </button>
-
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (page <= 3) {
-                    pageNum = i + 1;
-                  } else if (page >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = page - 2 + i;
-                  }
-
-                  return (
-                    <button
-                      key={pageNum}
-                      className={`join-item btn ${
-                        page === pageNum ? "btn-primary" : "btn-outline"
-                      }`}
-                      onClick={() => setPage(pageNum)}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-
-                <button
-                  className="join-item btn btn-outline"
-                  onClick={() => setPage(Math.min(totalPages, page + 1))}
-                  disabled={page === totalPages}
-                >
-                  <FaChevronRight />
-                </button>
-              </div>
-            </div>
+          {count > pageSize && (
+            <motion.div
+              className="flex justify-center mt-6 gap-2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <button
+                className="btn btn-outline"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                aria-label="Previous page"
+              >
+                <FaChevronLeft /> Prev
+              </button>
+              {Array.from({ length: Math.min(count / pageSize, 7) }, (_, i) => {
+                const num = i + 1;
+                return (
+                  <button
+                    key={num}
+                    className={`btn btn-sm ${
+                      num === page ? "btn-primary" : "btn-outline"
+                    }`}
+                    onClick={() => setPage(num)}
+                    aria-current={num === page ? "page" : undefined}
+                  >
+                    {num}
+                  </button>
+                );
+              })}
+              <button
+                className="btn btn-outline"
+                onClick={() =>
+                  setPage((p) => Math.min(Math.ceil(count / pageSize), p + 1))
+                }
+                disabled={page >= Math.ceil(count / pageSize)}
+                aria-label="Next page"
+              >
+                Next <FaChevronRight />
+              </button>
+            </motion.div>
           )}
 
-          {/* Results Summary */}
-          <div className="text-center mt-6">
-            <p className="text-base-content/60 text-sm">
-              Showing {filteredReviews.length} of {count} reviews
-              {searchTerm && ` for "${searchTerm}"`}
-            </p>
-          </div>
+          <motion.div
+            className="text-center mt-4 opacity-70 text-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.7 }}
+            transition={{ duration: 0.5 }}
+          >
+            Showing {filteredReviews.length} of {count} reviews
+            {searchTerm && <> for "{searchTerm}"</>}
+          </motion.div>
         </>
       )}
     </div>

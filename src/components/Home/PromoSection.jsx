@@ -91,7 +91,7 @@ const PromoSection = () => {
                 </motion.p>
 
                 <motion.div
-                  className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+                  className="flex flex-col sm:flex-row gap-4 items-center sm:justify-center lg:justify-start"
                   variants={itemVariants}
                 >
                   <Link to="/services">

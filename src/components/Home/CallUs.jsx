@@ -129,7 +129,7 @@ const CallUs = () => {
               >
                 {/* Front Side */}
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-br from-primary to-primary-focus rounded-xl flex flex-col items-center justify-center text-white backface-hidden shadow-lg p-4 space-y-3"
+                  className="absolute inset-0 bg-primary from-primary to-primary-focus rounded-xl flex flex-col items-center justify-center text-white backface-hidden shadow-lg p-4 space-y-3"
                   style={{ backfaceVisibility: "hidden" }}
                 >
                   <div className="p-3 bg-white/20 rounded-full">
@@ -145,7 +145,7 @@ const CallUs = () => {
 
                 {/* Back Side */}
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-br from-secondary to-secondary-focus rounded-xl flex flex-col items-center justify-center text-white shadow-lg p-4 space-y-3 rotate-y-180 backface-hidden"
+                  className="absolute inset-0 bg-primary from-secondary to-secondary-focus rounded-xl flex flex-col items-center justify-center text-white shadow-lg p-4 space-y-3 rotate-y-180 backface-hidden"
                   style={{
                     backfaceVisibility: "hidden",
                     transform: "rotateY(180deg)",

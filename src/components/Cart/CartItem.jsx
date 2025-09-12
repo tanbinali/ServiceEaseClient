@@ -12,11 +12,7 @@ export const CartItem = ({
   increaseQty,
   decreaseQty,
   removeItem,
-  formatDuration,
 }) => {
-  const itemMinutes = formatDuration
-    ? formatDuration(item.duration * item.quantity)
-    : item.duration;
   return (
     <div
       className={`bg-white rounded-2xl shadow-md border transition-all flex flex-col md:flex-row md:items-center md:gap-6 p-4 ${
@@ -42,12 +38,10 @@ export const CartItem = ({
         </div>
         <div className="flex gap-4 text-sm text-gray-600">
           <span className="inline-flex items-center gap-1">
-            <FaDollarSign className="text-primary" /> ${item.price} each
+            <FaDollarSign className="text-primary" /> ${item.price}
           </span>
           <span className="inline-flex items-center gap-1">
-            <FaClock className="text-secondary" /> {item.duration} x{" "}
-            {item.quantity} =&nbsp;
-            <b className="text-base-content">{itemMinutes} hrs</b>
+            <FaClock className="text-secondary" /> {item.duration}
           </span>
         </div>
         <div className="flex flex-wrap items-center justify-between mt-2">

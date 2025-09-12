@@ -1,9 +1,22 @@
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import apiClient from "../services/api-client";
-import ServicesFilter from "../components/Services/ServicesFilter";
-import ServicesList from "../components/Services/ServiceList";
 import { FaSpinner, FaArrowLeft, FaArrowRight, FaFilter } from "react-icons/fa";
+import apiClient from "../services/api-client";
+
+// Default image
+import defaultImage from "../assets/default-image.jpg";
+import { Link } from "react-router";
+
+// Helper to convert "HH:MM:SS" to seconds
+const durationToSeconds = (duration) => {
+  if (!duration) return 0;
+  const parts = duration.split(":");
+  if (parts.length !== 3) return 0;
+  return (
+    parseInt(parts[0], 10) * 3600 +
+    parseInt(parts[1], 10) * 60 +
+    parseInt(parts[2], 10)
+  );
+};
 
 const sortOptions = [
   { value: "", label: "Default" },
@@ -17,110 +30,72 @@ const sortOptions = [
   { value: "duration-desc", label: "Duration (Long → Short)" },
 ];
 
-// Helper function to convert "HH:MM:SS" into seconds
-const durationToSeconds = (duration) => {
-  if (!duration) return 0;
-  const parts = duration.split(":");
-  if (parts.length !== 3) return 0;
-  return (
-    parseInt(parts[0], 10) * 3600 +
-    parseInt(parts[1], 10) * 60 +
-    parseInt(parts[2], 10)
-  );
-};
-
 const Services = () => {
   const [services, setServices] = useState([]);
-  const [categories, setCategories] = useState({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
   const [count, setCount] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(12);
-  const [totalPages, setTotalPages] = useState(0);
+  const [nextPageUrl, setNextPageUrl] = useState(null);
+  const [prevPageUrl, setPrevPageUrl] = useState(null);
 
-  const navigate = useNavigate();
-
-  // Fetch categories once
-  const fetchCategories = async () => {
-    try {
-      const categoriesResponse = await apiClient.get("/categories/");
-      const categoriesMap = {};
-      (categoriesResponse.data.results || categoriesResponse.data).forEach(
-        (cat) => {
-          categoriesMap[cat.id] = cat.name;
-        }
-      );
-      setCategories(categoriesMap);
-    } catch (error) {
-      console.error("Failed to fetch categories:", error);
-    }
-  };
-
-  const fetchServices = async (page = 1) => {
+  // Fetch services from API
+  const fetchServices = async (customUrl = null) => {
     setLoading(true);
     try {
-      // Build query parameters
-      const params = new URLSearchParams({
-        page: page.toString(),
-        page_size: pageSize.toString(),
-      });
+      let url = customUrl || "/services/";
+      const params = new URLSearchParams();
 
-      if (searchQuery) {
-        params.append("search", searchQuery);
-      }
-      if (selectedCategory && selectedCategory !== "all") {
-        params.append("category", selectedCategory);
+      if (!customUrl) {
+        params.append("page_size", 12);
+        if (searchQuery) params.append("search", searchQuery);
+        if (sortBy) params.append("ordering", sortBy.replace("-", ""));
+        url = `${url}?${params.toString()}`;
       }
 
-      const servicesResponse = await apiClient.get(`/services/?${params}`);
-      const data = servicesResponse.data;
+      const res = await apiClient.get(url);
+      const data = res.data;
 
       setServices(data.results || []);
       setCount(data.count || 0);
-      setCurrentPage(page);
-      setTotalPages(Math.ceil((data.count || 0) / pageSize));
-    } catch (error) {
-      console.error("Failed to fetch services:", error);
+      setNextPageUrl(data.next);
+      setPrevPageUrl(data.previous);
+    } catch (err) {
+      console.error("Failed to fetch services:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
+    fetchServices();
+  }, [searchQuery, sortBy]);
 
-  // Reset current page to 1 and fetch services when filters or sorting change
-  useEffect(() => {
-    setCurrentPage(1);
-    fetchServices(1);
-  }, [searchQuery, selectedCategory, sortBy]);
-
-  const handleView = (service) => {
-    navigate(`/service/${service.id}`);
-  };
-
+  // Client-side filtering and sorting for current page
   const filteredServices = useMemo(() => {
     let filtered = [...services];
 
-    // Apply sorting on the current page's services
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (s) =>
+          s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          s.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
     if (sortBy) {
       const [key, order] = sortBy.split("-");
-
       filtered.sort((a, b) => {
         let valA = a[key] ?? 0;
         let valB = b[key] ?? 0;
 
-        if (key === "duration") {
-          valA = durationToSeconds(a.duration);
-          valB = durationToSeconds(b.duration);
+        if (key === "price" || key === "rating") {
+          valA = Number(valA);
+          valB = Number(valB);
         }
-        if (key === "rating") {
-          valA = a.rating ?? 0;
-          valB = b.rating ?? 0;
+        if (key === "duration") {
+          valA = durationToSeconds(valA);
+          valB = durationToSeconds(valB);
         }
         if (typeof valA === "string") valA = valA.toLowerCase();
         if (typeof valB === "string") valB = valB.toLowerCase();
@@ -132,25 +107,7 @@ const Services = () => {
     }
 
     return filtered;
-  }, [services, sortBy]);
-
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      fetchServices(page);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
-
-  if (loading && services.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <FaSpinner className="animate-spin text-4xl text-primary mx-auto mb-4" />
-          <p className="text-base-content/60">Loading services...</p>
-        </div>
-      </div>
-    );
-  }
+  }, [services, searchQuery, sortBy]);
 
   return (
     <div className="min-h-screen bg-base-200">
@@ -162,124 +119,121 @@ const Services = () => {
           </h1>
           <p className="text-lg text-base-content/70 max-w-2xl mx-auto">
             Discover a wide range of professional services tailored to your
-            needs. From home maintenance to professional consultations, we've
-            got you covered.
+            needs.
           </p>
         </div>
 
         {/* Filters */}
-        <ServicesFilter
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          sortOptions={sortOptions}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          categories={categories}
-          totalResults={count}
-          filteredResults={filteredServices.length}
-        />
+        <div className="bg-base-100 rounded-2xl shadow-lg border border-base-300 p-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Search */}
+            <input
+              type="text"
+              placeholder="Search services..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="input input-bordered w-full"
+            />
+            {/* Sort */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="select select-bordered w-full"
+            >
+              {sortOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
         {/* Services Grid */}
         {loading ? (
           <div className="flex justify-center py-12">
             <FaSpinner className="animate-spin text-2xl text-primary" />
           </div>
-        ) : (
-          <>
-            <ServicesList
-              services={filteredServices}
-              categories={categories}
-              onView={handleView}
-            />
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center mt-12">
-                <div className="join">
-                  <button
-                    className="join-item btn btn-outline"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                  >
-                    <FaArrowLeft />
-                  </button>
-
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
-
-                    return (
-                      <button
-                        key={pageNum}
-                        className={`join-item btn ${
-                          currentPage === pageNum
-                            ? "btn-primary"
-                            : "btn-outline"
-                        }`}
-                        onClick={() => handlePageChange(pageNum)}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-
-                  <button
-                    className="join-item btn btn-outline"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                  >
-                    <FaArrowRight />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Results Summary */}
-            <div className="text-center mt-6">
-              <p className="text-base-content/60 text-sm">
-                Showing {filteredServices.length} of {count} services
-                {searchQuery && ` for "${searchQuery}"`}
-                {selectedCategory !== "all" &&
-                  categories[selectedCategory] &&
-                  ` in ${categories[selectedCategory]}`}
-              </p>
-            </div>
-          </>
-        )}
-
-        {/* Empty State */}
-        {!loading && filteredServices.length === 0 && (
+        ) : filteredServices.length === 0 ? (
           <div className="text-center py-16 bg-base-100 rounded-2xl border border-base-300">
             <div className="text-6xl mb-4">🔍</div>
             <h3 className="text-xl font-semibold text-base-content mb-2">
               No services found
             </h3>
             <p className="text-base-content/60 mb-6">
-              Try adjusting your search criteria or filters to find what you're
-              looking for.
+              Try adjusting your search criteria or filters.
             </p>
             <button
               onClick={() => {
                 setSearchQuery("");
-                setSelectedCategory("all");
                 setSortBy("");
               }}
               className="btn btn-primary gap-2"
             >
               <FaFilter />
-              Clear All Filters
+              Clear Filters
             </button>
           </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredServices.map((s) => (
+                <div
+                  key={s.id}
+                  className="bg-base-100 rounded-2xl shadow-lg border border-base-300 p-5 flex flex-col justify-between"
+                >
+                  <img
+                    src={s.image || defaultImage}
+                    alt={s.name}
+                    className="h-48 w-full object-cover rounded-lg mb-4"
+                  />
+                  <h3 className="font-bold text-lg mb-2">{s.name}</h3>
+                  <p className="text-sm text-base-content/70 mb-2 line-clamp-2">
+                    {s.description}
+                  </p>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-semibold text-primary">
+                      ${s.price}
+                    </span>
+                    <span className="text-sm text-base-content/60">
+                      {s.duration.slice(0, 5)} hrs
+                    </span>
+                  </div>
+                  <Link to={`/service/${s.id}`}>
+                    <button className="btn btn-primary btn-block mt-auto">
+                      View Details
+                    </button>
+                  </Link>
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {(prevPageUrl || nextPageUrl) && (
+              <div className="flex justify-center mt-8 gap-2">
+                <button
+                  onClick={() => prevPageUrl && fetchServices(prevPageUrl)}
+                  disabled={!prevPageUrl}
+                  className="btn btn-outline"
+                >
+                  <FaArrowLeft /> Previous
+                </button>
+                <button
+                  onClick={() => nextPageUrl && fetchServices(nextPageUrl)}
+                  disabled={!nextPageUrl}
+                  className="btn btn-outline"
+                >
+                  Next <FaArrowRight />
+                </button>
+              </div>
+            )}
+
+            <div className="text-center mt-6">
+              <p className="text-sm text-base-content/60">
+                Showing {filteredServices.length} of {count} services
+              </p>
+            </div>
+          </>
         )}
       </div>
     </div>

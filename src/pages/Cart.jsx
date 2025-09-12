@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import useCartContext from "../hooks/useCartContext";
@@ -10,6 +10,8 @@ import { OrderSummary } from "../components/Cart/OrderSummary";
 import { EmptyCart } from "../components/Cart/EmptyCart";
 import { LoadingCart } from "../components/Cart/LoadingCart";
 import { ErrorCart } from "../components/Cart/ErrorCart";
+
+import { motion, AnimatePresence } from "framer-motion";
 
 // Convert "HH:MM" string to minutes
 function durationStrToMinutes(str) {
@@ -29,6 +31,24 @@ function minutesToHHMM(mins) {
   return `${h}:${m.toString().padStart(2, "0")}`;
 }
 
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.15 } },
+};
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
+const alertVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.4 } },
+};
+const pageVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.6 } },
+};
+
 const Cart = () => {
   const { cart, createOrGetCart, updateCartItemQuantity, removeCartItem } =
     useCartContext();
@@ -43,7 +63,6 @@ const Cart = () => {
     try {
       setLoading(true);
       setError(null);
-
       const cartData = await createOrGetCart();
 
       if (!cartData?.items?.length) {
@@ -73,7 +92,7 @@ const Cart = () => {
       });
 
       setItems(detailedItems);
-    } catch (err) {
+    } catch {
       setError("Failed to load cart items. Please try again.");
     } finally {
       setLoading(false);
@@ -100,6 +119,7 @@ const Cart = () => {
       }
     } catch (err) {
       console.error("Failed to update cart:", err);
+      toast.error("Failed to update cart. Please try again.");
     } finally {
       setUpdatingItem(null);
     }
@@ -130,7 +150,7 @@ const Cart = () => {
       toast.success("Order placed successfully!");
       setItems([]);
       navigate("/dashboard/orders");
-    } catch (err) {
+    } catch {
       toast.error("Failed to place order!");
     } finally {
       setPlacingOrder(false);
@@ -151,53 +171,88 @@ const Cart = () => {
   if (items.length === 0) return <EmptyCart />;
 
   return (
-    <div className="min-h-screen bg-base-100 py-8">
+    <motion.div
+      className="min-h-screen bg-base-100 py-8"
+      initial="hidden"
+      animate="visible"
+      variants={pageVariants}
+    >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-black text-base-content mb-2 flex items-center justify-center gap-3">
+        <motion.div className="text-center mb-8" variants={containerVariants}>
+          <motion.h1
+            className="text-4xl font-black text-base-content mb-2 flex items-center justify-center gap-3"
+            variants={itemVariants}
+          >
             Shopping Cart
-          </h1>
-          <p className="text-base-content/70">
+          </motion.h1>
+          <motion.p
+            className="text-base-content/70"
+            variants={itemVariants}
+            transition={{ delay: 0.2 }}
+          >
             Review and manage your selected services
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
 
-        {unavailableItems.length > 0 && (
-          <div className="alert bg-warning/10 border-warning text-warning rounded-2xl mb-6 flex items-center gap-3">
-            <span>
-              {unavailableItems.length} item
-              {unavailableItems.length !== 1 ? "s" : ""} unavailable. Please
-              remove them to checkout.
-            </span>
-          </div>
-        )}
+        <AnimatePresence>
+          {unavailableItems.length > 0 && (
+            <motion.div
+              className="alert bg-warning/10 border-warning text-warning rounded-2xl mb-6 flex items-center gap-3"
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              variants={alertVariants}
+            >
+              <span>
+                {unavailableItems.length} item
+                {unavailableItems.length !== 1 ? "s" : ""} unavailable. Please
+                remove them to checkout.
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 flex flex-col gap-6">
-            {items.map((item) => (
-              <CartItem
-                key={item.cartItemId}
-                item={item}
-                updatingItem={updatingItem}
-                increaseQty={increaseQty}
-                decreaseQty={decreaseQty}
-                removeItem={removeItem}
-                formatDuration={minutesToHHMM}
-              />
-            ))}
-          </div>
+        <motion.div
+          className="grid lg:grid-cols-3 gap-8"
+          variants={containerVariants}
+        >
+          <motion.div
+            className="lg:col-span-2 flex flex-col gap-6"
+            variants={containerVariants}
+          >
+            <AnimatePresence>
+              {items.map((item) => (
+                <motion.div
+                  key={item.cartItemId}
+                  variants={itemVariants}
+                  layout
+                >
+                  <CartItem
+                    item={item}
+                    updatingItem={updatingItem}
+                    increaseQty={increaseQty}
+                    decreaseQty={decreaseQty}
+                    removeItem={removeItem}
+                    formatDuration={minutesToHHMM}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
 
-          <OrderSummary
-            totalItems={totalItems}
-            totalPrice={totalPrice}
-            totalDuration={totalDuration}
-            unavailableItems={unavailableItems}
-            placingOrder={placingOrder}
-            handlePlaceOrder={handlePlaceOrder}
-          />
-        </div>
+          <motion.div variants={itemVariants}>
+            <OrderSummary
+              totalItems={totalItems}
+              totalPrice={totalPrice}
+              totalDuration={totalDuration}
+              unavailableItems={unavailableItems}
+              placingOrder={placingOrder}
+              handlePlaceOrder={handlePlaceOrder}
+            />
+          </motion.div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

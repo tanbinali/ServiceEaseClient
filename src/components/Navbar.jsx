@@ -156,7 +156,7 @@ const Navbar = () => {
           <div className="relative" ref={categoriesRef}>
             <button
               onClick={toggleCategoriesDropdown}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors hover: cursor-pointer ${
                 categoriesDropdownOpen
                   ? "text-primary font-semibold bg-primary/10"
                   : "text-base-content hover:text-primary hover:bg-base-200"
@@ -219,7 +219,7 @@ const Navbar = () => {
               <div className="relative" ref={profileRef}>
                 <button
                   onClick={toggleProfileDropdown}
-                  className="flex items-center gap-2 p-1 rounded-full hover:bg-base-200 transition-colors"
+                  className="flex items-center gap-2 p-1 rounded-full hover:bg-base-200 transition-colors cursor-pointer"
                 >
                   <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/20">
                     <img

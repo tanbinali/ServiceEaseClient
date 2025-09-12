@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import authApiClient from "../services/auth-api-client";
 import defaultProfileImage from "../assets/default_profile.png";
 import {
@@ -17,6 +18,7 @@ import {
   FaSortDown,
   FaEyeSlash,
 } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 export default function DashboardUsers() {
   const [users, setUsers] = useState([]);
@@ -32,6 +34,21 @@ export default function DashboardUsers() {
   const [sortDirection, setSortDirection] = useState("asc");
 
   const navigate = useNavigate();
+
+  // Animation variants
+  const fadeIn = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.5 } },
+  };
+
+  const slideUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  };
+
+  const stagger = {
+    visible: { transition: { staggerChildren: 0.1 } },
+  };
 
   useEffect(() => {
     fetchUsers(page);
@@ -112,22 +129,34 @@ export default function DashboardUsers() {
   const getGroupBadge = (groups) => {
     if (groups.includes("Admin")) {
       return (
-        <span className="badge badge-success gap-1 py-2 px-3">
+        <motion.span
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="badge badge-success gap-1 py-2 px-3"
+        >
           <FaUserShield className="text-xs" /> Admin
-        </span>
+        </motion.span>
       );
     }
     if (groups.includes("Client")) {
       return (
-        <span className="badge badge-info gap-1 py-2 px-3">
+        <motion.span
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="badge badge-info gap-1 py-2 px-3"
+        >
           <FaUserCheck className="text-xs" /> Client
-        </span>
+        </motion.span>
       );
     }
     return (
-      <span className="badge badge-ghost gap-1 py-2 px-3">
+      <motion.span
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="badge badge-ghost gap-1 py-2 px-3"
+      >
         <FaUserTimes className="text-xs" /> Unassigned
-      </span>
+      </motion.span>
     );
   };
 
@@ -143,21 +172,30 @@ export default function DashboardUsers() {
           u.id === userId ? { ...u, groups: newGroup ? [newGroup] : [] } : u
         )
       );
+      toast.success("User role updated successfully!");
     } catch (err) {
       console.error(
         "Failed to update user group",
         err.response?.data || err.message
       );
-      alert("Failed to update user role. Check console for details.");
+      toast.error("Failed to update user role. Check console for details.");
     } finally {
       setRoleChangeLoading(null);
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+      className="max-w-7xl mx-auto p-6"
+    >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <motion.div
+        variants={slideUp}
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
+      >
         <div>
           <h1 className="text-3xl font-bold text-base-content">
             User Management
@@ -166,10 +204,15 @@ export default function DashboardUsers() {
             Manage all system users and their permissions
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Filters */}
-      <div className="bg-base-100 p-6 rounded-box shadow-sm border border-base-300 mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+        className="bg-base-100 p-6 rounded-box shadow-sm border border-base-300 mb-6 flex flex-col md:flex-row gap-4 justify-between items-center"
+      >
         <div className="relative flex-grow max-w-md">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <FaSearch className="text-base-content/40" />
@@ -184,14 +227,20 @@ export default function DashboardUsers() {
         </div>
 
         <div className="dropdown dropdown-end">
-          <div tabIndex={0} role="button" className="btn btn-outline">
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            tabIndex={0}
+            role="button"
+            className="btn btn-outline"
+          >
             <FaFilter className="mr-2" /> Filter:{" "}
             {statusFilter === "all"
               ? "All"
               : statusFilter === "staff"
               ? "Admins"
               : "Clients"}
-          </div>
+          </motion.div>
           <ul
             tabIndex={0}
             className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 mt-1 border border-base-300"
@@ -222,32 +271,51 @@ export default function DashboardUsers() {
             </li>
           </ul>
         </div>
-      </div>
+      </motion.div>
 
       {/* Error */}
-      {error && (
-        <div className="alert alert-error mb-6">
-          <span>{error}</span>
-          <button
-            className="btn btn-sm btn-ghost"
-            onClick={() => setError(null)}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="alert alert-error mb-6"
           >
-            Dismiss
-          </button>
-        </div>
-      )}
+            <span>{error}</span>
+            <button
+              className="btn btn-sm btn-ghost"
+              onClick={() => setError(null)}
+            >
+              Dismiss
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="stat bg-base-100 rounded-box shadow-sm border border-base-300">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6"
+      >
+        <motion.div
+          whileHover={{ y: -5 }}
+          className="stat bg-base-100 rounded-box shadow-sm border border-base-300"
+        >
           <div className="stat-figure text-primary">
             <FaUserCircle className="text-3xl" />
           </div>
           <div className="stat-title">Total Users</div>
           <div className="stat-value text-primary">{count}</div>
-        </div>
+        </motion.div>
 
-        <div className="stat bg-base-100 rounded-box shadow-sm border border-base-300">
+        <motion.div
+          whileHover={{ y: -5 }}
+          transition={{ delay: 0.1 }}
+          className="stat bg-base-100 rounded-box shadow-sm border border-base-300"
+        >
           <div className="stat-figure text-success">
             <FaUserCheck className="text-3xl" />
           </div>
@@ -255,9 +323,13 @@ export default function DashboardUsers() {
           <div className="stat-value text-success">
             {users.filter((u) => u.groups.includes("Client")).length}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="stat bg-base-100 rounded-box shadow-sm border border-base-300">
+        <motion.div
+          whileHover={{ y: -5 }}
+          transition={{ delay: 0.2 }}
+          className="stat bg-base-100 rounded-box shadow-sm border border-base-300"
+        >
           <div className="stat-figure text-error">
             <FaUserShield className="text-3xl" />
           </div>
@@ -265,32 +337,43 @@ export default function DashboardUsers() {
           <div className="stat-value text-error">
             {users.filter((u) => u.groups.includes("Admin")).length}
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Loading */}
       {loading && (
-        <div className="flex flex-col items-center justify-center py-20 bg-base-100 rounded-box border border-base-300">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex flex-col items-center justify-center py-20 bg-base-100 rounded-box border border-base-300"
+        >
           <FaSpinner className="animate-spin text-4xl text-primary mb-4" />
           <p className="text-base-content/60">Loading users...</p>
-        </div>
+        </motion.div>
       )}
 
       {/* Table */}
       {!loading && (
-        <div className="bg-base-100 rounded-box shadow-sm overflow-hidden border border-base-300">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="bg-base-100 rounded-box shadow-sm overflow-hidden border border-base-300"
+        >
           <div className="overflow-x-auto">
             <table className="table">
               <thead>
                 <tr>
                   <th className="bg-base-200">User</th>
                   <th className="bg-base-200">
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       className="flex items-center font-semibold"
                       onClick={() => handleSort("email")}
                     >
                       Email <SortIcon field="email" />
-                    </button>
+                    </motion.button>
                   </th>
                   <th className="bg-base-200">Role</th>
                   <th className="bg-base-200">Change Role</th>
@@ -316,72 +399,90 @@ export default function DashboardUsers() {
                     </td>
                   </tr>
                 ) : (
-                  filteredUsers.map((u) => (
-                    <tr key={u.id} className="hover">
-                      <td>
-                        <div className="flex items-center gap-3">
-                          <div className="avatar">
-                            <div className="w-10 h-10 rounded-full">
-                              <img
-                                src={
-                                  u.profile?.profile_picture ||
-                                  defaultProfileImage
-                                }
-                                alt={u.username}
-                                className="object-cover"
-                              />
+                  <AnimatePresence mode="popLayout">
+                    {filteredUsers.map((u) => (
+                      <motion.tr
+                        key={u.id}
+                        layout
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className="hover"
+                      >
+                        <td>
+                          <div className="flex items-center gap-3">
+                            <div className="avatar">
+                              <div className="w-10 h-10 rounded-full">
+                                <img
+                                  src={
+                                    u.profile?.profile_picture ||
+                                    defaultProfileImage
+                                  }
+                                  alt={u.username}
+                                  className="object-cover"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <div className="font-bold">{u.username}</div>
+                              <div className="text-sm text-base-content/60">
+                                {u.first_name} {u.last_name}
+                              </div>
                             </div>
                           </div>
-                          <div>
-                            <div className="font-bold">{u.username}</div>
-                            <div className="text-sm text-base-content/60">
-                              {u.first_name} {u.last_name}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>{u.email}</td>
-                      <td>{getGroupBadge(u.groups)}</td>
-                      <td>
-                        <select
-                          className="select select-bordered select-sm w-full max-w-xs"
-                          value={u.groups[0] || ""}
-                          onChange={(e) =>
-                            handleGroupChange(u.id, e.target.value)
-                          }
-                          disabled={roleChangeLoading === u.id}
-                        >
-                          <option value="">Unassigned</option>
-                          <option value="Admin">Admin</option>
-                          <option value="Client">Client</option>
-                        </select>
-                        {roleChangeLoading === u.id && (
-                          <FaSpinner className="animate-spin inline-block ml-2 text-primary" />
-                        )}
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+                        <td>{u.email}</td>
+                        <td>{getGroupBadge(u.groups)}</td>
+                        <td>
+                          <motion.select
+                            whileHover={{ scale: 1.02 }}
+                            className="select select-bordered select-sm w-full max-w-xs"
+                            value={u.groups[0] || ""}
+                            onChange={(e) =>
+                              handleGroupChange(u.id, e.target.value)
+                            }
+                            disabled={roleChangeLoading === u.id}
+                          >
+                            <option value="">Unassigned</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Client">Client</option>
+                          </motion.select>
+                          {roleChangeLoading === u.id && (
+                            <FaSpinner className="animate-spin inline-block ml-2 text-primary" />
+                          )}
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
                 )}
               </tbody>
             </table>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Pagination */}
       {!loading && totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8"
+        >
           <div className="text-sm text-base-content/60">
             Showing {filteredUsers.length} of {count} users
           </div>
           <div className="join">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               disabled={page <= 1}
               onClick={() => setPage((p) => p - 1)}
               className="join-item btn btn-outline"
             >
               <FaChevronLeft />
-            </button>
+            </motion.button>
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               let pageNum;
               if (totalPages <= 5) pageNum = i + 1;
@@ -390,27 +491,31 @@ export default function DashboardUsers() {
               else pageNum = page - 2 + i;
 
               return (
-                <button
+                <motion.button
                   key={pageNum}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setPage(pageNum)}
                   className={`join-item btn ${
                     page === pageNum ? "btn-primary" : "btn-outline"
                   }`}
                 >
                   {pageNum}
-                </button>
+                </motion.button>
               );
             })}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               disabled={page >= totalPages}
               onClick={() => setPage((p) => p + 1)}
               className="join-item btn btn-outline"
             >
               <FaChevronRight />
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }

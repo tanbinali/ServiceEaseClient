@@ -204,7 +204,7 @@ const AboutUs = () => {
           variants={containerVariants}
         >
           <motion.div
-            className="bg-gradient-to-br from-primary to-primary-focus text-primary-content p-8 rounded-2xl shadow-2xl"
+            className="bg-primary from-primary to-primary-focus text-primary-content p-8 rounded-2xl shadow-2xl"
             variants={scaleVariants}
           >
             <div className="flex items-center gap-4 mb-6">
@@ -220,7 +220,7 @@ const AboutUs = () => {
           </motion.div>
 
           <motion.div
-            className="bg-gradient-to-br from-secondary to-secondary-focus text-secondary-content p-8 rounded-2xl shadow-2xl"
+            className="bg-primary from-secondary to-secondary-focus text-secondary-content p-8 rounded-2xl shadow-2xl"
             variants={scaleVariants}
           >
             <div className="flex items-center gap-4 mb-6">

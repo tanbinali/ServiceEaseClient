@@ -10,6 +10,7 @@ import ProfileField from "../components/Dashboard/ProfileField";
 import InputField from "../components/Dashboard/InputField";
 import TextAreaField from "../components/Dashboard/TextAreaField";
 import ServiceHistory from "../components/Dashboard/ServiceHistory";
+import toast from "react-hot-toast";
 
 const Dashboard = () => {
   const { user } = useAuthContext();
@@ -88,7 +89,7 @@ const Dashboard = () => {
       });
     } catch (err) {
       console.error("Failed to fetch user:", err.response?.data || err.message);
-      alert("Failed to load profile");
+      toast.error("Failed to load profile");
     } finally {
       setLoading(false);
     }
@@ -117,7 +118,7 @@ const Dashboard = () => {
       await authApiClient.patch("/api/profile/me/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      alert("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
       setEditMode(false);
       loadProfile();
     } catch (err) {
@@ -125,7 +126,7 @@ const Dashboard = () => {
         "Failed to update user/profile:",
         err.response?.data || err.message
       );
-      alert("Failed to update profile");
+      toast.error("Failed to update profile");
     } finally {
       setSaving(false);
     }
