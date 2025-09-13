@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   FaShoppingCart,
@@ -15,7 +15,7 @@ import { useAuthContext } from "../contexts/AuthContext";
 import apiClient from "../services/api-client";
 import logo from "../assets/logo.png";
 import defaultImg from "../assets/default_profile.png";
-import authApiClient from "../services/auth-api-client";
+import CartContext from "../contexts/CartContext";
 
 const Navbar = () => {
   const { user, logoutUser } = useAuthContext();
@@ -30,6 +30,24 @@ const Navbar = () => {
 
   const categoriesRef = useRef(null);
   const profileRef = useRef(null);
+
+  const { cart, createOrGetCart } = useContext(CartContext);
+
+  useEffect(() => {
+    if (cart?.items) {
+      const count = cart.items.reduce(
+        (total, item) => total + item.quantity,
+        0
+      );
+      setCartItemsCount(count);
+    } else {
+      setCartItemsCount(0);
+    }
+  }, [cart]);
+
+  useEffect(() => {
+    createOrGetCart();
+  }, [createOrGetCart]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -58,31 +76,6 @@ const Navbar = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  useEffect(() => {
-    const fetchCartCount = async () => {
-      if (!user) {
-        setCartItemsCount(0);
-        return;
-      }
-      try {
-        const cartId = localStorage.getItem("cartId");
-        if (!cartId) return;
-
-        const response = await authApiClient.get(`api/carts/${cartId}/`);
-        // Sum quantities of all items
-        const count = response.data.items.reduce(
-          (total, item) => total + item.quantity,
-          0
-        );
-        setCartItemsCount(count);
-      } catch (error) {
-        console.error("Failed to fetch cart:", error);
-      }
-    };
-
-    fetchCartCount();
-  }, [user]);
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   const toggleProfileDropdown = () =>

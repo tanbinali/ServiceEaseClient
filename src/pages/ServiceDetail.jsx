@@ -115,7 +115,6 @@ const ServiceDetail = () => {
       await addItemToCart(service.id, quantity);
       toast.success("Service added to cart!");
     } catch (err) {
-      console.error(err);
       toast.error("Failed to add service to cart");
     } finally {
       setAddingToCart(false);
@@ -405,6 +404,13 @@ const ServiceDetail = () => {
                 transition={{ duration: 0.3 }}
               >
                 {/* Add/Edit Review Form */}
+                {activeTab === "reviews" && (
+                  <p className="mb-4 text-sm text-base-content/60">
+                    To add a review, you must have an order with{" "}
+                    <strong>COMPLETED</strong> status.
+                  </p>
+                )}
+
                 {hasPurchased &&
                   (editingReview ||
                     !reviews.some((r) => r.user === user?.email)) && (

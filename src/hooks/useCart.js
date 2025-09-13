@@ -23,15 +23,28 @@ const useCart = () => {
       try {
         const response = await authApiClient.post(
           `/api/carts/${currentCart.id}/items/`,
-          { cart: currentCart.id, service: serviceId, quantity }
+          { service: serviceId, quantity }
         );
-        setCart((prev) => ({
-          ...prev,
-          items: [...(prev?.items || []), response.data],
-        }));
-        return response.data;
+
+        const addedItem = response.data;
+
+        setCart((prev) => {
+          const existingItemIndex = prev?.items?.findIndex(
+            (i) => i.id === addedItem.id
+          );
+          if (existingItemIndex !== -1) {
+            // Replace the updated item
+            const updatedItems = [...prev.items];
+            updatedItems[existingItemIndex] = addedItem;
+            return { ...prev, items: updatedItems };
+          } else {
+            return { ...prev, items: [...(prev?.items || []), addedItem] };
+          }
+        });
+
+        return addedItem;
       } catch (err) {
-        console.error("Error adding item:", err);
+        console.error("Error adding item:", err.response?.data || err);
         throw err;
       }
     },

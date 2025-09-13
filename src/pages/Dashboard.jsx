@@ -102,22 +102,41 @@ const Dashboard = () => {
   const onSubmit = async (data) => {
     setSaving(true);
     try {
-      await authApiClient.patch("/auth/users/me/", {
-        username: data.username,
-        email: data.email,
-      });
+      // Only update username/email if they changed
+      if (
+        data.username !== userProfile.username ||
+        data.email !== userProfile.email
+      ) {
+        await authApiClient.patch("/auth/users/me/", {
+          username: data.username,
+          email: data.email,
+        });
+      }
+
       const formData = new FormData();
-      formData.append("full_name", data.full_name);
-      formData.append("phone_number", data.phone_number);
-      formData.append("address", data.address);
+      if (data.full_name) formData.append("full_name", data.full_name);
+      if (data.phone_number) formData.append("phone_number", data.phone_number);
+      if (data.address) formData.append("address", data.address);
       if (data.bio) formData.append("bio", data.bio);
       if (data.date_of_birth)
         formData.append("date_of_birth", data.date_of_birth);
       if (data.profile_picture?.length > 0)
         formData.append("profile_picture", data.profile_picture[0]);
-      await authApiClient.patch("/api/profile/me/", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+
+      // Only patch profile if there is something to send
+      if (
+        formData.has("full_name") ||
+        formData.has("phone_number") ||
+        formData.has("address") ||
+        formData.has("bio") ||
+        formData.has("date_of_birth") ||
+        formData.has("profile_picture")
+      ) {
+        await authApiClient.patch("/api/profile/me/", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
+
       toast.success("Profile updated successfully!");
       setEditMode(false);
       loadProfile();

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuthContext } from "../contexts/AuthContext";
+import useAuth from "../hooks/useAuth";
 import {
   FaUserPlus,
   FaEnvelope,
@@ -33,7 +33,7 @@ const buttonVariants = {
 
 const Register = () => {
   const navigate = useNavigate();
-  const { register: registerUser } = useAuthContext();
+  const { registerUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -55,27 +55,27 @@ const Register = () => {
     clearErrors();
     setSuccessMsg("");
 
-    try {
-      const { confirmPassword, ...payload } = data;
+    const { confirmPassword, ...payload } = data;
 
-      await registerUser(payload);
+    const result = await registerUser(payload);
 
-      setLoading(false);
+    setLoading(false);
+
+    if (result.success) {
       setSuccessMsg(
         "Registration successful! Please check your email to activate your account."
       );
-    } catch (err) {
-      setLoading(false);
-      const res = err.response?.data;
-      if (res) {
-        for (const [field, messages] of Object.entries(res)) {
+    } else {
+      // handle field errors if returned as an object
+      if (typeof result.message === "object") {
+        for (const [field, messages] of Object.entries(result.message)) {
           setError(field, {
             type: "server",
             message: Array.isArray(messages) ? messages.join(" ") : messages,
           });
         }
       } else {
-        setErrorMsg("Registration failed. Please try again.");
+        setErrorMsg(result.message || "Registration failed. Please try again.");
       }
     }
   };
@@ -334,7 +334,6 @@ const Register = () => {
             </motion.button>
           </motion.form>
 
-          {/* Additional info and links */}
           {/* Additional info and links */}
           <motion.div
             className="mt-8 text-center space-y-4"
