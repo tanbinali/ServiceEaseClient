@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const authApiClient = axios.create({
-  baseURL: "serviceease-pi.vercel.app/",
+  baseURL: "https://serviceease-pi.vercel.app/",
 });
 
 export default authApiClient;
