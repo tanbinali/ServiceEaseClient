@@ -8,6 +8,7 @@ import {
   FaShieldAlt,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -79,76 +80,79 @@ const FAQ = () => {
   };
 
   return (
-    <div className="min-h-screen bg-base-100 py-16">
-      {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
-        <motion.h1
-          className="text-5xl font-bold text-base-content mb-6"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-        >
-          Frequently Asked <span className="text-primary">Questions</span>
-        </motion.h1>
-        <motion.p
-          className="text-lg text-base-content/70 max-w-3xl mx-auto leading-relaxed"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-        >
-          Find answers to common questions about ServiceEase. If your question
-          isn’t listed, feel free to reach out to our support team.
-        </motion.p>
-      </section>
-
-      {/* FAQ Section */}
-      <motion.section
-        className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={containerVariants}
-      >
-        {faqs.map((faq, index) => (
-          <motion.div
-            key={faq.id}
-            className="bg-base-200 p-6 mb-6 rounded-lg shadow-md cursor-pointer select-none hover:shadow-lg transition-shadow"
-            variants={itemVariants}
+    <div className="flex flex-col min-h-screen bg-base-100">
+      {/* Main content */}
+      <main className="flex-grow">
+        {/* Hero Section */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
+          <motion.h1
+            className="text-5xl font-bold text-base-content mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
           >
-            <div
-              onClick={() => toggleQuestion(faq.id)}
-              className="flex justify-between items-center"
+            Frequently Asked <span className="text-primary">Questions</span>
+          </motion.h1>
+          <motion.p
+            className="text-lg text-base-content/70 max-w-3xl mx-auto leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+          >
+            Find answers to common questions about ServiceEase. If your question
+            isn’t listed, feel free to reach out to our support team.
+          </motion.p>
+        </section>
+
+        {/* FAQ Section */}
+        <motion.section
+          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={containerVariants}
+        >
+          {faqs.map((faq, index) => (
+            <motion.div
+              key={faq.id}
+              className="bg-base-200 p-6 mb-6 rounded-lg shadow-md cursor-pointer select-none hover:shadow-lg transition-shadow"
+              variants={itemVariants}
             >
-              <div className="flex items-center gap-4">
-                <faq.icon className="text-2xl text-primary flex-shrink-0" />
-                <h3 className="text-xl font-semibold text-base-content">
-                  {index + 1}. {faq.question}
-                </h3>
+              <div
+                onClick={() => toggleQuestion(faq.id)}
+                className="flex justify-between items-center"
+              >
+                <div className="flex items-center gap-4">
+                  <faq.icon className="text-2xl text-primary flex-shrink-0" />
+                  <h3 className="text-xl font-semibold text-base-content">
+                    {index + 1}. {faq.question}
+                  </h3>
+                </div>
+                <button className="btn btn-ghost btn-sm">
+                  {activeQuestion === faq.id ? (
+                    <FaChevronUp />
+                  ) : (
+                    <FaChevronDown />
+                  )}
+                </button>
               </div>
-              <button className="btn btn-ghost btn-sm">
-                {activeQuestion === faq.id ? (
-                  <FaChevronUp />
-                ) : (
-                  <FaChevronDown />
-                )}
-              </button>
-            </div>
-            <div
-              className={`mt-4 text-base-content/80 text-lg leading-relaxed pl-11 ${
-                activeQuestion === faq.id ? "block" : "hidden"
-              }`}
-            >
-              {faq.answer}
-            </div>
-          </motion.div>
-        ))}
-      </motion.section>
+              <div
+                className={`mt-4 text-base-content/80 text-lg leading-relaxed pl-11 ${
+                  activeQuestion === faq.id ? "block" : "hidden"
+                }`}
+              >
+                {faq.answer}
+              </div>
+            </motion.div>
+          ))}
+        </motion.section>
+      </main>
 
       {/* Contact CTA */}
       <motion.section
-        className="py-16 bg-gradient-to-r from-primary to-secondary text-center text-primary-content mt-12"
+        className="py-16 bg-gradient-to-r from-primary to-secondary text-center text-primary-content"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -160,9 +164,11 @@ const FAQ = () => {
         <p className="text-lg md:text-xl max-w-2xl mx-auto mb-8">
           Our support team is ready to help and provide personalized assistance.
         </p>
-        <button className="btn btn-lg btn-secondary rounded-full px-8">
-          Contact Support
-        </button>
+        <Link to="/contact">
+          <button className="btn btn-lg btn-secondary rounded-full px-8">
+            Contact Support
+          </button>
+        </Link>
       </motion.section>
     </div>
   );

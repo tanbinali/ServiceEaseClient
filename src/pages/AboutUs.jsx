@@ -385,7 +385,7 @@ const AboutUs = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/register"
-              className="btn btn-lg btn-accent text-accent-content rounded-full px-8"
+              className="btn btn-lg btn-accent-content text-primary rounded-full px-8"
             >
               Sign Up as Customer
             </Link>
