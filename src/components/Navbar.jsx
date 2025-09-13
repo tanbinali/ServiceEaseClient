@@ -16,6 +16,7 @@ import apiClient from "../services/api-client";
 import logo from "../assets/logo.png";
 import defaultImg from "../assets/default_profile.png";
 import CartContext from "../contexts/CartContext";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const { user, logoutUser } = useAuthContext();
@@ -73,8 +74,8 @@ const Navbar = () => {
         setProfileDropdownOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mouseup", handleClickOutside); // <-- use mouseup
+    return () => document.removeEventListener("mouseup", handleClickOutside);
   }, []);
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
@@ -338,25 +339,55 @@ const Navbar = () => {
               About Us
             </Link>
 
-            <div>
+            <div className="relative" ref={categoriesRef}>
               <button
-                onClick={toggleCategoriesDropdown}
-                className="w-full flex justify-between items-center py-3 px-4 rounded-lg hover:bg-base-200 transition-colors font-medium"
+                onClick={() => setCategoriesDropdownOpen((prev) => !prev)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors hover:cursor-pointer ${
+                  categoriesDropdownOpen
+                    ? "text-primary font-semibold bg-primary/10"
+                    : "text-base-content hover:text-primary hover:bg-base-200"
+                }`}
               >
-                Categories <FaChevronDown className="text-xs" />
+                Categories{" "}
+                <FaChevronDown className="text-xs transition-transform" />
               </button>
+
               {categoriesDropdownOpen && (
-                <div className="pl-6 mt-2 space-y-2 max-h-60 overflow-y-auto">
-                  {categories.map((cat) => (
-                    <Link
-                      key={cat.id}
-                      to={`/category/${cat.id}`}
-                      className="block py-2 px-4 rounded-lg hover:bg-base-200 transition-colors"
-                      onClick={toggleMobileMenu}
-                    >
-                      {cat.name}
-                    </Link>
-                  ))}
+                <div
+                  className="absolute top-full left-0 mt-2 w-56 bg-base-100 rounded-xl shadow-2xl border border-base-300 py-2 z-50 max-h-80 overflow-y-auto"
+                  onClick={(e) => e.stopPropagation()} // prevent dropdown from closing on inner click
+                >
+                  <div className="px-4 py-2 border-b border-base-300">
+                    <h3 className="font-semibold text-base-content">
+                      Browse Categories
+                    </h3>
+                  </div>
+
+                  {loadingCategories ? (
+                    <div className="flex justify-center py-6">
+                      <FaSpinner className="animate-spin text-primary text-xl" />
+                    </div>
+                  ) : categories.length > 0 ? (
+                    <div className="py-2">
+                      {categories.map((cat) => (
+                        <Link
+                          key={cat.id}
+                          to={`/category/${cat.id}`}
+                          className="block px-4 py-3 text-base-content hover:bg-base-200 transition-colors"
+                          onClick={() => {
+                            setCategoriesDropdownOpen(false); // close dropdown
+                            setMobileMenuOpen(false); // close mobile menu if open
+                          }}
+                        >
+                          {cat.name}
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="px-4 py-4 text-base-content/60 text-center">
+                      No categories available
+                    </div>
+                  )}
                 </div>
               )}
             </div>
