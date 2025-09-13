@@ -6,11 +6,33 @@ import {
   FaEye,
   FaEyeSlash,
   FaSignInAlt,
+  FaSpinner,
   FaEnvelope,
   FaLock,
   FaUserPlus,
   FaKey,
+  FaExclamationCircle,
 } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+
+const containerVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { staggerChildren: 0.15, duration: 0.6 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
+
+const buttonVariants = {
+  hover: { scale: 1.05 },
+  tap: { scale: 0.95 },
+};
 
 const Login = () => {
   const { loginUser } = useAuthContext();
@@ -28,67 +50,117 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (data) => {
+    clearErrors();
     setLoading(true);
     clearErrors();
     setSuccessMsg("");
 
-    const res = await loginUser(data);
-    setLoading(false);
+    try {
+      const res = await loginUser(data);
 
-    if (res.success) {
-      setSuccessMsg("Login successful! Redirecting...");
-      setTimeout(() => navigate("/dashboard"), 1000);
-    } else if (res.fieldErrors) {
-      Object.entries(res.fieldErrors).forEach(([field, message]) => {
-        setError(field, { type: "server", message });
+      if (res.success) {
+        setSuccessMsg("Login successful! Redirecting...");
+        setTimeout(() => navigate("/dashboard"), 1000);
+      } else if (res.fieldErrors?.detail) {
+        // Show backend detail as general error
+        setError("general", {
+          type: "server",
+          message: res.fieldErrors.detail,
+        });
+      } else {
+        setError("general", {
+          type: "server",
+          message: "Login failed. Please check your credentials.",
+        });
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("general", {
+        type: "server",
+        message: "Server error. Please try again later.",
       });
-    } else if (res.message) {
-      setError("general", { type: "server", message: res.message });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 px-4 py-8">
-      <div className="card w-full max-w-md shadow-2xl bg-base-100 border border-base-300 overflow-hidden">
-        <div className="card-body p-8">
+    <motion.div
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 px-4 py-8"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      <motion.div
+        className="card w-full max-w-md shadow-2xl bg-base-100 border border-base-300 overflow-hidden"
+        variants={itemVariants}
+      >
+        <motion.div className="card-body p-8" variants={itemVariants}>
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
+          <motion.div className="text-center mb-8" variants={itemVariants}>
+            <motion.div
+              className="flex justify-center mb-4"
+              variants={itemVariants}
+            >
               <div className="p-3 bg-primary/10 rounded-2xl">
                 <FaSignInAlt className="text-4xl text-primary" />
               </div>
-            </div>
-            <h2 className="text-3xl font-bold text-base-content mb-2">
+            </motion.div>
+            <motion.h2
+              className="text-3xl font-bold text-base-content mb-2"
+              variants={itemVariants}
+            >
               Welcome Back
-            </h2>
-            <p className="text-base-content/70">
+            </motion.h2>
+            <motion.p className="text-base-content" variants={itemVariants}>
               Sign in to your ServiceEase account
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
 
-          {/* Messages */}
-          {errors.general && (
-            <div className="alert alert-error mb-6">
-              <div className="flex-1">
-                <FaKey className="w-6 h-6" />
-                <label>{errors.general.message}</label>
-              </div>
-            </div>
-          )}
+          {/* General error message */}
+          <AnimatePresence>
+            {errors.general && (
+              <motion.div
+                className="alert alert-error mb-6 flex items-center gap-2"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                role="alert"
+              >
+                <FaExclamationCircle className="text-lg" />
+                <span>{errors.general.message}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {successMsg && (
-            <div className="alert alert-success mb-6">
-              <div className="flex-1">
-                <FaSignInAlt className="w-6 h-6" />
-                <label>{successMsg}</label>
-              </div>
-            </div>
-          )}
+          {/* Success message */}
+          <AnimatePresence>
+            {successMsg && (
+              <motion.div
+                className="alert alert-success mb-6 flex items-center gap-2"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                role="alert"
+              >
+                <FaSignInAlt />
+                <span>{successMsg}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* Login Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Email Field */}
-            <div className="form-control">
+          {/* Form */}
+          <motion.form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-6"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+          >
+            {/* Email */}
+            <motion.div className="form-control" variants={itemVariants}>
               <label className="label">
                 <span className="label-text font-semibold">Email Address</span>
               </label>
@@ -105,22 +177,31 @@ const Login = () => {
                       value: /^\S+@\S+$/i,
                       message: "Please enter a valid email address",
                     },
+                    onChange: () => clearErrors("general"),
                   })}
                   className={`input input-bordered w-full pl-12 pr-4 py-3 ${
                     errors.email ? "input-error" : ""
                   }`}
                   disabled={loading}
+                  aria-invalid={errors.email ? "true" : "false"}
+                  aria-describedby="email-error"
                 />
               </div>
               {errors.email && (
-                <p className="text-error text-sm mt-2">
+                <motion.p
+                  id="email-error"
+                  className="text-error mt-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  role="alert"
+                >
                   {errors.email.message}
-                </p>
+                </motion.p>
               )}
-            </div>
+            </motion.div>
 
-            {/* Password Field */}
-            <div className="form-control">
+            {/* Password */}
+            <motion.div className="form-control" variants={itemVariants}>
               <label className="label">
                 <span className="label-text font-semibold">Password</span>
               </label>
@@ -137,66 +218,81 @@ const Login = () => {
                       value: 8,
                       message: "Password must be at least 8 characters",
                     },
+                    onChange: () => clearErrors("general"),
                   })}
                   className={`input input-bordered w-full pl-12 pr-12 py-3 ${
                     errors.password ? "input-error" : ""
                   }`}
                   disabled={loading}
+                  aria-invalid={errors.password ? "true" : "false"}
+                  aria-describedby="password-error"
                 />
                 <button
                   type="button"
-                  className="absolute right-4 top-4 text-base-content/40 hover:text-base-content/60"
+                  className="absolute right-4 top-4 text-base-content/40 hover:text-base-content"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-error text-sm mt-2">
+                <motion.p
+                  id="password-error"
+                  className="text-error mt-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  role="alert"
+                >
                   {errors.password.message}
-                </p>
+                </motion.p>
               )}
-            </div>
+            </motion.div>
 
-            {/* Submit Button */}
-            <button
+            {/* Submit */}
+            <motion.button
               type="submit"
               disabled={loading}
-              className="btn btn-primary w-full gap-2 py-3 text-lg"
+              className="btn btn-primary w-full flex justify-center gap-2"
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
             >
-              <FaSignInAlt className="mr-2" />
+              {loading ? (
+                <FaSpinner className="animate-spin" />
+              ) : (
+                <FaSignInAlt />
+              )}
               {loading ? "Signing in..." : "Sign In"}
-            </button>
-          </form>
+            </motion.button>
+          </motion.form>
 
-          {/* Links Section */}
-          <div className="space-y-4 mt-8 pt-6 border-t border-base-300">
-            <div className="text-center">
+          {/* Links */}
+          <motion.div
+            className="mt-8 text-center space-y-4"
+            variants={itemVariants}
+          >
+            <Link
+              to="/reset-password"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary-focus"
+              tabIndex={0}
+            >
+              <FaKey /> Forgot password?
+            </Link>
+            <p className="text-sm">
+              Don't have an account?{" "}
               <Link
-                to="/reset-password"
-                className="text-primary hover:text-primary-focus font-semibold text-sm flex items-center justify-center gap-2"
+                to="/register"
+                className="inline-flex items-center gap-2 text-primary font-semibold hover:text-primary-focus"
+                tabIndex={0}
               >
-                <FaKey className="w-4 h-4" />
-                Forgot your password?
+                <FaUserPlus /> Create Account
               </Link>
-            </div>
-
-            <div className="text-center">
-              <p className="text-base-content/70 text-sm">
-                Don't have an account?{" "}
-                <Link
-                  to="/register"
-                  className="text-primary hover:text-primary-focus font-semibold flex items-center justify-center gap-2 mt-2"
-                >
-                  <FaUserPlus className="w-4 h-4" />
-                  Create Account
-                </Link>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            </p>
+          </motion.div>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 };
 

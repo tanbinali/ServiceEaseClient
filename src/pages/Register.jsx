@@ -1,19 +1,39 @@
-import { useForm } from "react-hook-form";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import authApiClient from "../services/auth-api-client";
+import { useAuthContext } from "../contexts/AuthContext";
 import {
   FaUserPlus,
   FaEnvelope,
   FaUser,
   FaLock,
+  FaKey,
+  FaArrowLeft,
   FaCheckCircle,
   FaExclamationTriangle,
-  FaArrowLeft,
 } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+
+const containerVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { staggerChildren: 0.15, duration: 0.6 },
+  },
+};
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
+const buttonVariants = {
+  hover: { scale: 1.05 },
+  tap: { scale: 0.95 },
+};
 
 const Register = () => {
   const navigate = useNavigate();
+  const { register: registerUser } = useAuthContext();
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -21,9 +41,10 @@ const Register = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
     setError,
+    clearErrors,
     watch,
+    formState: { errors },
   } = useForm();
 
   const password = watch("password");
@@ -31,13 +52,13 @@ const Register = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     setErrorMsg("");
+    clearErrors();
     setSuccessMsg("");
 
     try {
-      // Remove confirmPassword before sending to API
       const { confirmPassword, ...payload } = data;
 
-      await authApiClient.post("/auth/users/", payload);
+      await registerUser(payload);
 
       setLoading(false);
       setSuccessMsg(
@@ -45,13 +66,14 @@ const Register = () => {
       );
     } catch (err) {
       setLoading(false);
-      if (err.response?.data) {
-        Object.entries(err.response.data).forEach(([key, val]) => {
-          setError(key, {
+      const res = err.response?.data;
+      if (res) {
+        for (const [field, messages] of Object.entries(res)) {
+          setError(field, {
             type: "server",
-            message: Array.isArray(val) ? val.join(" ") : val,
+            message: Array.isArray(messages) ? messages.join(" ") : messages,
           });
-        });
+        }
       } else {
         setErrorMsg("Registration failed. Please try again.");
       }
@@ -59,47 +81,81 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 px-4 py-20">
-      <div className="card w-full max-w-md shadow-2xl bg-base-100 border border-base-300 overflow-hidden">
-        <div className="card-body p-8">
+    <motion.div
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 px-4"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      <motion.div
+        className="card w-full max-w-md shadow-2xl bg-base-100 border border-base-300 overflow-hidden"
+        variants={itemVariants}
+      >
+        <motion.div className="card-body p-8" variants={itemVariants}>
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
+          <motion.div className="text-center mb-8" variants={itemVariants}>
+            <motion.div
+              className="flex justify-center mb-4"
+              variants={itemVariants}
+            >
               <div className="p-3 bg-primary/10 rounded-2xl">
                 <FaUserPlus className="text-4xl text-primary" />
               </div>
-            </div>
-            <h2 className="text-3xl font-bold text-base-content mb-2">
+            </motion.div>
+            <motion.h2
+              className="text-3xl font-bold text-center mb-2"
+              variants={itemVariants}
+            >
               Create Account
-            </h2>
-            <p className="text-base-content/70">
+            </motion.h2>
+            <motion.p
+              className="text-center text-base-content/70"
+              variants={itemVariants}
+            >
               Join ServiceEase and discover amazing services
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
 
-          {/* Messages */}
-          {errorMsg && (
-            <div className="alert alert-error mb-6">
-              <div className="flex-1">
-                <FaExclamationTriangle className="w-6 h-6" />
-                <label>{errorMsg}</label>
-              </div>
-            </div>
-          )}
+          {/* Error message */}
+          <AnimatePresence>
+            {(errorMsg || errors.general) && (
+              <motion.div
+                className="alert alert-error mb-6 flex items-center gap-2"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                role="alert"
+              >
+                <FaExclamationTriangle className="text-lg" />
+                <span>{errorMsg || errors.general?.message}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {successMsg && (
-            <div className="alert alert-success mb-6">
-              <div className="flex-1">
-                <FaCheckCircle className="w-6 h-6" />
-                <label>{successMsg}</label>
-              </div>
-            </div>
-          )}
+          {/* Success message */}
+          <AnimatePresence>
+            {successMsg && (
+              <motion.div
+                className="alert alert-success mb-6 flex items-center gap-2"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                role="alert"
+              >
+                <FaCheckCircle className="text-lg" />
+                <span>{successMsg}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* Registration Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Email Field */}
-            <div className="form-control">
+          {/* Form */}
+          <motion.form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-6"
+            variants={containerVariants}
+          >
+            {/* Email */}
+            <motion.div className="form-control" variants={itemVariants}>
               <label className="label">
                 <span className="label-text font-semibold">Email Address</span>
               </label>
@@ -113,7 +169,7 @@ const Register = () => {
                   {...register("email", {
                     required: "Email is required",
                     pattern: {
-                      value: /^\S+@\S+$/i,
+                      value: /^\S+@\S+$/,
                       message: "Please enter a valid email address",
                     },
                   })}
@@ -121,17 +177,25 @@ const Register = () => {
                     errors.email ? "input-error" : ""
                   }`}
                   disabled={loading}
+                  aria-invalid={errors.email ? "true" : "false"}
+                  aria-describedby="email-error"
                 />
               </div>
               {errors.email && (
-                <p className="text-error text-sm mt-2">
+                <motion.p
+                  id="email-error"
+                  className="text-error mt-2"
+                  role="alert"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
                   {errors.email.message}
-                </p>
+                </motion.p>
               )}
-            </div>
+            </motion.div>
 
-            {/* Username Field */}
-            <div className="form-control">
+            {/* Username */}
+            <motion.div className="form-control" variants={itemVariants}>
               <label className="label">
                 <span className="label-text font-semibold">Username</span>
               </label>
@@ -146,29 +210,36 @@ const Register = () => {
                     required: "Username is required",
                     pattern: {
                       value: /^[\w.@+-]+$/,
-                      message:
-                        "Username can only contain letters, numbers, and @/./+/-/_",
+                      message: "Only letters, numbers and @/./+/-/_ allowed",
                     },
                     minLength: {
                       value: 3,
-                      message: "Username must be at least 3 characters",
+                      message: "Minimum 3 characters required",
                     },
                   })}
                   className={`input input-bordered w-full pl-12 pr-4 py-3 ${
                     errors.username ? "input-error" : ""
                   }`}
                   disabled={loading}
+                  aria-invalid={errors.username ? "true" : "false"}
+                  aria-describedby="username-error"
                 />
               </div>
               {errors.username && (
-                <p className="text-error text-sm mt-2">
+                <motion.p
+                  id="username-error"
+                  className="text-error mt-2"
+                  role="alert"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
                   {errors.username.message}
-                </p>
+                </motion.p>
               )}
-            </div>
+            </motion.div>
 
-            {/* Password Field */}
-            <div className="form-control">
+            {/* Password */}
+            <motion.div className="form-control" variants={itemVariants}>
               <label className="label">
                 <span className="label-text font-semibold">Password</span>
               </label>
@@ -183,24 +254,32 @@ const Register = () => {
                     required: "Password is required",
                     minLength: {
                       value: 8,
-                      message: "Password must be at least 8 characters",
+                      message: "Minimum 8 characters required",
                     },
                   })}
                   className={`input input-bordered w-full pl-12 pr-4 py-3 ${
                     errors.password ? "input-error" : ""
                   }`}
                   disabled={loading}
+                  aria-invalid={errors.password ? "true" : "false"}
+                  aria-describedby="password-error"
                 />
               </div>
               {errors.password && (
-                <p className="text-error text-sm mt-2">
+                <motion.p
+                  id="password-error"
+                  className="text-error mt-2"
+                  role="alert"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
                   {errors.password.message}
-                </p>
+                </motion.p>
               )}
-            </div>
+            </motion.div>
 
-            {/* Confirm Password Field */}
-            <div className="form-control">
+            {/* Confirm Password */}
+            <motion.div className="form-control" variants={itemVariants}>
               <label className="label">
                 <span className="label-text font-semibold">
                   Confirm Password
@@ -214,7 +293,7 @@ const Register = () => {
                   type="password"
                   placeholder="Confirm your password"
                   {...register("confirmPassword", {
-                    required: "Confirm password is required",
+                    required: "Please confirm your password",
                     validate: (value) =>
                       value === password || "Passwords do not match",
                   })}
@@ -222,66 +301,86 @@ const Register = () => {
                     errors.confirmPassword ? "input-error" : ""
                   }`}
                   disabled={loading}
+                  aria-invalid={errors.confirmPassword ? "true" : "false"}
+                  aria-describedby="confirmPassword-error"
                 />
               </div>
               {errors.confirmPassword && (
-                <p className="text-error text-sm mt-2">
+                <motion.p
+                  id="confirmPassword-error"
+                  className="text-error mt-2"
+                  role="alert"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
                   {errors.confirmPassword.message}
-                </p>
+                </motion.p>
               )}
-            </div>
+            </motion.div>
 
-            {/* Submit Button */}
-            <button
+            {/* Submit */}
+            <motion.button
               type="submit"
               disabled={loading}
-              className={`btn btn-primary w-full gap-2 py-3 text-lg ${
+              className={`btn btn-primary w-full py-3 text-lg flex justify-center items-center gap-2 ${
                 loading ? "loading" : ""
               }`}
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
             >
               {!loading && <FaUserPlus />}
               {loading ? "Creating Account..." : "Create Account"}
-            </button>
-          </form>
+            </motion.button>
+          </motion.form>
 
-          {/* Links Section */}
-          {successMsg && (
-            <div className="space-y-4 mt-8 pt-6 border-t border-base-300">
-              <div className="text-center">
-                <Link
-                  to="/resend-activation"
-                  className="text-primary hover:text-primary-focus font-semibold text-sm flex items-center justify-center gap-2"
-                >
-                  <FaEnvelope className="w-4 h-4" />
-                  Resend Activation Email
-                </Link>
-              </div>
-            </div>
-          )}
+          {/* Additional info and links */}
+          {/* Additional info and links */}
+          <motion.div
+            className="mt-8 text-center space-y-4"
+            variants={itemVariants}
+          >
+            {successMsg && (
+              <motion.div
+                className="alert alert-success flex items-center gap-2"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <FaCheckCircle />
+                <span>{successMsg}</span>
+              </motion.div>
+            )}
 
-          <div className="space-y-4 mt-4 text-center">
-            <p className="text-base-content/70 text-sm">
+            {/* Only show this after user pressed submit (success or error) */}
+            {(successMsg || errorMsg) && (
+              <Link
+                to="/resend-activation"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary-focus"
+                tabIndex={0}
+              >
+                <FaEnvelope /> Resend Activation Email
+              </Link>
+            )}
+
+            <p className="text-sm">
               Already have an account?{" "}
               <Link
                 to="/login"
-                className="text-primary hover:text-primary-focus font-semibold flex items-center justify-center gap-2 mt-2"
+                className="inline-flex items-center gap-2 text-primary font-semibold hover:text-primary-focus"
+                tabIndex={0}
               >
-                <FaArrowLeft className="w-4 h-4" />
-                Sign In
+                <FaArrowLeft /> Sign In
               </Link>
             </p>
-          </div>
 
-          {/* Terms Notice */}
-          <div className="mt-6 text-center">
-            <p className="text-xs text-base-content/50">
+            <p className="text-xs mt-4 text-base-content/50">
               By creating an account, you agree to our Terms of Service and
-              Privacy Policy
+              Privacy Policy.
             </p>
-          </div>
-        </div>
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 };
 

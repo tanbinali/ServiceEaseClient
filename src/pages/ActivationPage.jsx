@@ -89,8 +89,8 @@ const ActivationPage = () => {
               </Link>
             ) : status === "error" ? (
               <div className="flex flex-col gap-3 w-full">
-                <Link to="/register" className="btn btn-outline gap-2">
-                  <FaEnvelope /> Try Registering Again
+                <Link to="/resend-activation" className="btn btn-outline gap-2">
+                  <FaEnvelope /> Resend Activation Email
                 </Link>
                 <Link to="/" className="btn btn-ghost gap-2">
                   Return to Home

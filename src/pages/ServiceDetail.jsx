@@ -80,7 +80,7 @@ const ServiceDetail = () => {
       setReviewsLoading(true);
       setReviewsError(null);
       try {
-        const res = await authApiClient.get(`/api/services/${id}/reviews/`);
+        const res = await apiClient.get(`/services/${id}/reviews/`);
         setReviews(res.data.results || []);
       } catch (err) {
         console.error(err);

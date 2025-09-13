@@ -141,20 +141,32 @@ const DashboardOrders = () => {
   };
 
   const handlePayNow = async (order) => {
-    toast.loading("Redirecting to payment...");
-    try {
-      const response = await authApiClient.post(`api/payment/initiate/`, {
+    await toast.promise(
+      authApiClient.post(`api/payment/initiate/`, {
         amount: order.total_price,
         orderId: order.id,
         numItems: order.order_items?.length,
-      });
-      if (response.data.payment_url) {
-        window.location.href = response.data.payment_url;
+      }),
+      {
+        loading: "Redirecting to payment...",
+        success: (response) => {
+          if (response.data.payment_url) {
+            setTimeout(() => {
+              window.location.href = response.data.payment_url;
+            }, 1000);
+          }
+          return "Redirecting to payment gateway...";
+        },
+        error: (err) => {
+          // get backend error message if available
+          const detail =
+            err.response?.data?.error ||
+            err.response?.data?.detail ||
+            "Payment initiation failed.";
+          return detail;
+        },
       }
-    } catch (err) {
-      console.log(err);
-      toast.error("Failed to initiate payment.");
-    }
+    );
   };
 
   if (loading || authLoading) {
@@ -487,6 +499,12 @@ const OrderActions = ({ order, user, updatingOrderId, onChange, onPay }) => {
     );
   }
 
+  const isProfileComplete = (user) => {
+    if (!user || !user.profile) return false;
+    const { full_name, phone_number, address } = user.profile;
+    return Boolean(full_name && phone_number && address);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -496,15 +514,25 @@ const OrderActions = ({ order, user, updatingOrderId, onChange, onPay }) => {
     >
       {order.status === "PENDING" && (
         <div className="flex gap-2">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onPay(order)}
-            className="btn btn-success btn-sm gap-2"
-            aria-label={`Pay now for order ${order.id}`}
-          >
-            <FaCreditCard /> Pay Now
-          </motion.button>
+          {isProfileComplete(user) ? (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => onPay(order)}
+              className="btn btn-success btn-sm gap-2"
+              aria-label={`Pay now for order ${order.id}`}
+            >
+              <FaCreditCard /> Pay Now
+            </motion.button>
+          ) : (
+            <Link
+              to="/dashboard"
+              className="btn btn-warning btn-sm gap-2"
+              aria-label="Setup profile before paying"
+            >
+              <FaInfoCircle /> Setup Profile to Pay
+            </Link>
+          )}
         </div>
       )}
     </motion.div>
