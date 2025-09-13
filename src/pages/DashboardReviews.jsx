@@ -30,7 +30,6 @@ const DashboardReviews = () => {
   const [count, setCount] = useState(0);
   const [deletingId, setDeletingId] = useState(null);
 
-  // Filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [ratingFilter, setRatingFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
@@ -39,7 +38,6 @@ const DashboardReviews = () => {
 
   const pageSize = 10;
 
-  // Animations
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -52,12 +50,8 @@ const DashboardReviews = () => {
       transition: { duration: 0.4, ease: "easeOut" },
     },
   };
-  const buttonVariants = {
-    hover: { scale: 1.04 },
-    tap: { scale: 0.96 },
-  };
+  const buttonVariants = { hover: { scale: 1.04 }, tap: { scale: 0.96 } };
 
-  // Fetch reviews
   const fetchReviews = async (pageNumber = 1) => {
     setLoading(true);
     setError(null);
@@ -67,14 +61,13 @@ const DashboardReviews = () => {
       });
       setReviews(response.data.results || []);
       setCount(response.data.count || 0);
-    } catch (err) {
+    } catch {
       setError("Failed to fetch reviews. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch services for mapping
   const fetchServices = async () => {
     try {
       const response = await apiClient.get("/services/");
@@ -83,9 +76,7 @@ const DashboardReviews = () => {
         map[s.id] = s.name;
       });
       setServicesMap(map);
-    } catch (err) {
-      // Optionally handle error
-    }
+    } catch {}
   };
 
   useEffect(() => {
@@ -93,7 +84,6 @@ const DashboardReviews = () => {
     fetchServices();
   }, [page]);
 
-  // Delete review
   const deleteReview = async (id) => {
     if (!window.confirm("Are you sure you want to delete this review?")) return;
     setDeletingId(id);
@@ -109,7 +99,6 @@ const DashboardReviews = () => {
     }
   };
 
-  // Render stars
   const renderStars = (rating) =>
     [...Array(5)].map((_, i) => (
       <FaStar
@@ -118,14 +107,6 @@ const DashboardReviews = () => {
       />
     ));
 
-  // Rating icon
-  const getRatingIcon = (rating) => {
-    if (rating >= 4) return <FaSmile className="text-success" />;
-    if (rating >= 3) return <FaMeh className="text-warning" />;
-    return <FaFrown className="text-error" />;
-  };
-
-  // Filter & sort reviews
   const filteredReviews = reviews
     .filter((review) => {
       const matchesTerm =
@@ -134,13 +115,10 @@ const DashboardReviews = () => {
         (servicesMap[review.service] || "")
           .toLowerCase()
           .includes(searchTerm.toLowerCase());
-
       const matchesRating =
         ratingFilter === "all" || review.rating === Number(ratingFilter);
-
       const matchesService =
         serviceFilter === "all" || review.service === Number(serviceFilter);
-
       return matchesTerm && matchesRating && matchesService;
     })
     .sort((a, b) =>
@@ -149,26 +127,18 @@ const DashboardReviews = () => {
         : new Date(a.created_at) - new Date(b.created_at)
     );
 
-  // Unique services on current page
   const servicesInReviews = [...new Set(reviews.map((r) => r.service))];
 
-  // Rating distribution
-  const ratingDistribution = reviews.reduce((acc, review) => {
-    acc[review.rating] = (acc[review.rating] || 0) + 1;
-    return acc;
-  }, {});
-
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      {/* Header */}
+    <div className="max-w-full md:max-w-7xl mx-auto p-4 md:p-6">
       <motion.div
-        className="mb-8"
+        className="mb-6 md:mb-8"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         <motion.h2
-          className="text-3xl font-bold text-base-content mb-2"
+          className="text-2xl md:text-3xl font-bold mb-2"
           variants={itemVariants}
         >
           Customer Reviews
@@ -184,7 +154,7 @@ const DashboardReviews = () => {
 
       {/* Stats */}
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -239,14 +209,14 @@ const DashboardReviews = () => {
         </motion.div>
       </motion.div>
 
-      {/* Filter & Search*/}
+      {/* Filter & Search */}
       <motion.div
-        className="bg-base-100 rounded-2xl shadow border border-base-300 p-4 mb-8"
+        className="bg-base-100 rounded-2xl shadow border border-base-300 p-4 mb-6 md:mb-8"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
-        <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 flex-wrap">
           <div className="relative w-full md:w-96">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <FaSearch className="text-base-content/40" />
@@ -337,7 +307,6 @@ const DashboardReviews = () => {
                   ))}
                 </select>
               </div>
-
               <div className="md:col-span-2 flex justify-end">
                 <button
                   className="btn btn-ghost"
@@ -388,7 +357,7 @@ const DashboardReviews = () => {
             animate="visible"
             variants={containerVariants}
           >
-            <table className="table table-zebra w-full">
+            <table className="table table-zebra w-full min-w-[600px] md:min-w-full">
               <thead>
                 <tr>
                   <th>User & Rating</th>
@@ -410,7 +379,7 @@ const DashboardReviews = () => {
                       transition={{ duration: 0.3 }}
                     >
                       <td>
-                        <div className="flex items-center space-x-3">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center space-x-0 sm:space-x-3 space-y-1 sm:space-y-0">
                           <div className="avatar placeholder rounded-full">
                             {review.user_profile_picture ? (
                               <img
@@ -474,7 +443,7 @@ const DashboardReviews = () => {
 
           {count > pageSize && (
             <motion.div
-              className="flex justify-center mt-6 gap-2"
+              className="flex flex-wrap justify-center mt-6 gap-2"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
@@ -483,32 +452,33 @@ const DashboardReviews = () => {
                 className="btn btn-outline"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                aria-label="Previous page"
               >
                 <FaChevronLeft /> Prev
               </button>
-              {Array.from({ length: Math.min(count / pageSize, 7) }, (_, i) => {
-                const num = i + 1;
-                return (
-                  <button
-                    key={num}
-                    className={`btn btn-sm ${
-                      num === page ? "btn-primary" : "btn-outline"
-                    }`}
-                    onClick={() => setPage(num)}
-                    aria-current={num === page ? "page" : undefined}
-                  >
-                    {num}
-                  </button>
-                );
-              })}
+              {Array.from(
+                { length: Math.min(Math.ceil(count / pageSize), 7) },
+                (_, i) => {
+                  const num = i + 1;
+                  return (
+                    <button
+                      key={num}
+                      className={`btn btn-sm ${
+                        num === page ? "btn-primary" : "btn-outline"
+                      }`}
+                      onClick={() => setPage(num)}
+                      aria-current={num === page ? "page" : undefined}
+                    >
+                      {num}
+                    </button>
+                  );
+                }
+              )}
               <button
                 className="btn btn-outline"
                 onClick={() =>
                   setPage((p) => Math.min(Math.ceil(count / pageSize), p + 1))
                 }
                 disabled={page >= Math.ceil(count / pageSize)}
-                aria-label="Next page"
               >
                 Next <FaChevronRight />
               </button>

@@ -17,7 +17,7 @@ import {
   FaCheck,
 } from "react-icons/fa";
 import toast from "react-hot-toast";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -25,11 +25,7 @@ const containerVariants = {
 };
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: "easeOut" },
-  },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
 };
 const cardVariants = {
   hidden: { opacity: 0, scale: 0.95 },
@@ -39,10 +35,7 @@ const cardVariants = {
     transition: { duration: 0.4, ease: "easeOut" },
   },
 };
-const buttonVariants = {
-  hover: { scale: 1.04 },
-  tap: { scale: 0.96 },
-};
+const buttonVariants = { hover: { scale: 1.04 }, tap: { scale: 0.96 } };
 
 const DashboardCategories = () => {
   const [categories, setCategories] = useState([]);
@@ -58,11 +51,9 @@ const DashboardCategories = () => {
   const [nextPage, setNextPage] = useState(null);
   const [prevPage, setPrevPage] = useState(null);
 
-  // Filter state
   const [filterTerm, setFilterTerm] = useState("");
-  const [filterActive, setFilterActive] = useState(null); // null means no filter applied
+  const [filterActive, setFilterActive] = useState(null);
 
-  // Fetch categories with status skeleton loader
   const fetchCategories = async (url = "categories/") => {
     setLoading(true);
     try {
@@ -84,22 +75,16 @@ const DashboardCategories = () => {
     fetchCategories();
   }, []);
 
-  // Filtered categories according to filter input and active state
   const filteredCategories = categories.filter((cat) => {
     const matchesTerm =
       cat.name.toLowerCase().includes(filterTerm.toLowerCase()) ||
       (cat.description || "").toLowerCase().includes(filterTerm.toLowerCase());
 
-    // If active filter is null, show all
     if (filterActive === null) return matchesTerm;
-
-    // Here category has no active state, so just simulate:
-    // We'll treat categories with description as "active" just for demonstration
     const isActive = cat.description && cat.description.length > 0;
     return matchesTerm && isActive === filterActive;
   });
 
-  // Add new category with button loading state
   const [adding, setAdding] = useState(false);
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return;
@@ -120,7 +105,6 @@ const DashboardCategories = () => {
     setAdding(false);
   };
 
-  // Update category with button loading state
   const [updating, setUpdating] = useState(false);
   const handleUpdateCategory = async (id) => {
     if (!editCategoryName.trim() && !editCategoryDescription.trim()) return;
@@ -145,7 +129,6 @@ const DashboardCategories = () => {
     setUpdating(false);
   };
 
-  // Delete category with button loading state
   const [deletingId, setDeletingId] = useState(null);
   const handleDeleteCategory = async (id) => {
     if (!window.confirm("Are you sure you want to delete this category?"))
@@ -162,10 +145,9 @@ const DashboardCategories = () => {
     setDeletingId(null);
   };
 
-  // Skeleton loader for cards
   const CategorySkeleton = () => (
     <motion.div
-      className="flex flex-col md:flex-row items-start md:items-center justify-between animate-pulse p-3 rounded-xl border border-base-300 bg-base-100 gap-2"
+      className="flex flex-col sm:flex-row items-start sm:items-center justify-between animate-pulse p-3 rounded-xl border border-base-300 bg-base-100 gap-2"
       initial="hidden"
       animate="visible"
       variants={cardVariants}
@@ -182,24 +164,22 @@ const DashboardCategories = () => {
   );
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-7">
+    <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
       <motion.h1
-        className="text-3xl font-bold mb-2 flex gap-2 items-center"
+        className="text-2xl sm:text-3xl font-bold flex gap-2 items-center"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
       >
         <FaFolderOpen className="text-primary" /> Manage Categories
       </motion.h1>
 
       {/* Filter Section */}
       <motion.div
-        className="flex flex-col md:flex-row gap-4 items-center mb-6"
+        className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-start sm:items-center flex-wrap"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.1 }}
       >
-        <div className="relative flex-grow max-w-md">
+        <div className="relative flex-1 min-w-[220px]">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <FaSearch className="text-gray-400" />
           </div>
@@ -211,13 +191,12 @@ const DashboardCategories = () => {
             onChange={(e) => setFilterTerm(e.target.value)}
           />
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex flex-wrap gap-2">
           <button
             className={`btn btn-outline flex items-center gap-2 ${
               filterActive === null ? "btn-active" : ""
             }`}
             onClick={() => setFilterActive(null)}
-            aria-pressed={filterActive === null}
           >
             <FaFilter /> All
           </button>
@@ -226,7 +205,6 @@ const DashboardCategories = () => {
               filterActive === true ? "btn-active" : ""
             }`}
             onClick={() => setFilterActive(true)}
-            aria-pressed={filterActive === true}
           >
             <FaCheck /> With Description
           </button>
@@ -235,7 +213,6 @@ const DashboardCategories = () => {
               filterActive === false ? "btn-active" : ""
             }`}
             onClick={() => setFilterActive(false)}
-            aria-pressed={filterActive === false}
           >
             <FaExclamationTriangle /> No Description
           </button>
@@ -244,24 +221,23 @@ const DashboardCategories = () => {
 
       {/* Add New Category */}
       <motion.div
-        className="flex flex-col md:flex-row gap-2 mb-6 items-center"
+        className="flex flex-col sm:flex-row gap-2 items-start sm:items-center flex-wrap"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
       >
         <input
           type="text"
           placeholder="Category name"
           value={newCategoryName}
           onChange={(e) => setNewCategoryName(e.target.value)}
-          className="input input-bordered flex-1"
+          className="input input-bordered flex-1 min-w-[150px]"
         />
         <input
           type="text"
           placeholder="Category description"
           value={newCategoryDescription}
           onChange={(e) => setNewCategoryDescription(e.target.value)}
-          className="input input-bordered flex-1"
+          className="input input-bordered flex-1 min-w-[150px]"
         />
         <motion.button
           onClick={handleAddCategory}
@@ -295,7 +271,7 @@ const DashboardCategories = () => {
           filteredCategories.map((cat) => (
             <motion.div
               key={cat.id}
-              className="flex flex-col md:flex-row items-start md:items-center justify-between p-3 rounded-xl border border-base-300 bg-base-100 gap-2"
+              className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-xl border border-base-300 bg-base-100 gap-2"
               initial={{ opacity: 0, y: 10, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.9 }}
@@ -307,15 +283,15 @@ const DashboardCategories = () => {
                     type="text"
                     value={editCategoryName}
                     onChange={(e) => setEditCategoryName(e.target.value)}
-                    className="input input-bordered flex-1"
+                    className="input input-bordered flex-1 min-w-[120px]"
                   />
                   <input
                     type="text"
                     value={editCategoryDescription}
                     onChange={(e) => setEditCategoryDescription(e.target.value)}
-                    className="input input-bordered flex-1"
+                    className="input input-bordered flex-1 min-w-[120px]"
                   />
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
                     <motion.button
                       className="btn btn-success gap-2"
                       onClick={() => handleUpdateCategory(cat.id)}
@@ -345,17 +321,17 @@ const DashboardCategories = () => {
                 </>
               ) : (
                 <>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="font-medium flex gap-2 items-center">
                       <FaFolderOpen className="text-base-300" /> {cat.name}
                     </p>
-                    <p className="text-sm text-base-content/60">
+                    <p className="text-sm text-base-content/60 truncate">
                       {cat.description || (
                         <span className="text-gray-400">No description</span>
                       )}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
                     <motion.button
                       className="btn btn-sm btn-ghost gap-2"
                       onClick={() => {
@@ -397,10 +373,9 @@ const DashboardCategories = () => {
 
       {/* Pagination */}
       <motion.div
-        className="flex justify-center gap-4 mt-2"
+        className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4 mt-4"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
       >
         <motion.button
           onClick={() => prevPage && fetchCategories(prevPage)}

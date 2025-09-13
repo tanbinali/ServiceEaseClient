@@ -178,15 +178,16 @@ const Cart = () => {
       variants={pageVariants}
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
         <motion.div className="text-center mb-8" variants={containerVariants}>
           <motion.h1
-            className="text-4xl font-black text-base-content mb-2 flex items-center justify-center gap-3"
+            className="text-3xl sm:text-4xl font-black text-base-content mb-2 flex flex-col sm:flex-row items-center justify-center gap-3"
             variants={itemVariants}
           >
             Shopping Cart
           </motion.h1>
           <motion.p
-            className="text-base-content/70"
+            className="text-base-content/70 text-sm sm:text-base"
             variants={itemVariants}
             transition={{ delay: 0.2 }}
           >
@@ -194,6 +195,7 @@ const Cart = () => {
           </motion.p>
         </motion.div>
 
+        {/* Unavailable Items Alert */}
         <AnimatePresence>
           {unavailableItems.length > 0 && (
             <motion.div
@@ -212,12 +214,13 @@ const Cart = () => {
           )}
         </AnimatePresence>
 
+        {/* Cart Items + Order Summary */}
         <motion.div
-          className="grid lg:grid-cols-3 gap-8"
+          className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8"
           variants={containerVariants}
         >
           <motion.div
-            className="lg:col-span-2 flex flex-col gap-6"
+            className="lg:col-span-2 flex flex-col gap-4 sm:gap-6"
             variants={containerVariants}
           >
             <AnimatePresence>

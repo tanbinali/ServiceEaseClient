@@ -16,7 +16,6 @@ import {
   FaSort,
   FaSortUp,
   FaSortDown,
-  FaEyeSlash,
 } from "react-icons/fa";
 import toast from "react-hot-toast";
 
@@ -35,19 +34,13 @@ export default function DashboardUsers() {
 
   const navigate = useNavigate();
 
-  // Animation variants
   const fadeIn = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { duration: 0.5 } },
   };
-
   const slideUp = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  };
-
-  const stagger = {
-    visible: { transition: { staggerChildren: 0.1 } },
   };
 
   useEffect(() => {
@@ -73,45 +66,38 @@ export default function DashboardUsers() {
 
   const totalPages = Math.ceil(count / 10);
 
-  // Filter + sort
   const filteredUsers = users
     .filter((user) => {
       const matchesSearch =
         user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase());
-
       let matchesStatus = true;
-      if (statusFilter === "staff") {
+      if (statusFilter === "staff")
         matchesStatus = user.groups.includes("Admin");
-      } else if (statusFilter === "client") {
+      else if (statusFilter === "client")
         matchesStatus = user.groups.includes("Client");
-      }
-
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
       let aValue = a[sortField];
       let bValue = b[sortField];
-
       if (sortField === "group") {
         aValue = a.groups.length > 0 ? a.groups[0] : "";
         bValue = b.groups.length > 0 ? b.groups[0] : "";
       }
-
       if (typeof aValue === "string") {
         aValue = aValue.toLowerCase();
         bValue = bValue.toLowerCase();
       }
-
       if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
       if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
       return 0;
     });
 
   const handleSort = (field) => {
-    if (sortField === field) {
+    if (sortField === field)
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
+    else {
       setSortField(field);
       setSortDirection("asc");
     }
@@ -127,35 +113,36 @@ export default function DashboardUsers() {
   };
 
   const getGroupBadge = (groups) => {
-    if (groups.includes("Admin")) {
+    if (groups.includes("Admin"))
       return (
         <motion.span
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="badge badge-success gap-1 py-2 px-3"
+          className="badge badge-success gap-1 py-1 px-2 text-xs flex items-center"
         >
-          <FaUserShield className="text-xs" /> Admin
+          <FaUserShield className="text-xs mr-1" />
+          Admin
         </motion.span>
       );
-    }
-    if (groups.includes("Client")) {
+    if (groups.includes("Client"))
       return (
         <motion.span
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="badge badge-info gap-1 py-2 px-3"
+          className="badge badge-info gap-1 py-1 px-2 text-xs flex items-center"
         >
-          <FaUserCheck className="text-xs" /> Client
+          <FaUserCheck className="text-xs mr-1" />
+          Client
         </motion.span>
       );
-    }
     return (
       <motion.span
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="badge badge-ghost gap-1 py-2 px-3"
+        className="badge badge-ghost gap-1 py-1 px-2 text-xs flex items-center"
       >
-        <FaUserTimes className="text-xs" /> Unassigned
+        <FaUserTimes className="text-xs mr-1" />
+        Unassigned
       </motion.span>
     );
   };
@@ -166,7 +153,6 @@ export default function DashboardUsers() {
       await authApiClient.patch(`/auth/users/${userId}/`, {
         groups: newGroup ? [newGroup] : [],
       });
-
       setUsers((prevUsers) =>
         prevUsers.map((u) =>
           u.id === userId ? { ...u, groups: newGroup ? [newGroup] : [] } : u
@@ -178,7 +164,7 @@ export default function DashboardUsers() {
         "Failed to update user group",
         err.response?.data || err.message
       );
-      toast.error("Failed to update user role. Check console for details.");
+      toast.error("Failed to update user role.");
     } finally {
       setRoleChangeLoading(null);
     }
@@ -189,18 +175,18 @@ export default function DashboardUsers() {
       initial="hidden"
       animate="visible"
       variants={fadeIn}
-      className="max-w-7xl mx-auto p-6"
+      className="max-w-7xl mx-auto p-4 sm:p-6"
     >
       {/* Header */}
       <motion.div
         variants={slideUp}
-        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 sm:mb-6"
       >
         <div>
-          <h1 className="text-3xl font-bold text-base-content">
+          <h1 className="text-2xl sm:text-3xl font-bold text-base-content">
             User Management
           </h1>
-          <p className="text-base-content/60 mt-1">
+          <p className="text-base-content/60 mt-1 text-sm sm:text-base">
             Manage all system users and their permissions
           </p>
         </div>
@@ -211,9 +197,9 @@ export default function DashboardUsers() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
-        className="bg-base-100 p-6 rounded-box shadow-sm border border-base-300 mb-6 flex flex-col md:flex-row gap-4 justify-between items-center"
+        className="bg-base-100 p-4 sm:p-6 rounded-box shadow-sm border border-base-300 mb-4 sm:mb-6 flex flex-col md:flex-row gap-4 justify-between items-center w-full"
       >
-        <div className="relative flex-grow max-w-md">
+        <div className="relative flex-grow w-full md:max-w-md">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <FaSearch className="text-base-content/40" />
           </div>
@@ -225,14 +211,13 @@ export default function DashboardUsers() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-
-        <div className="dropdown dropdown-end">
+        <div className="dropdown dropdown-end w-full md:w-auto">
           <motion.div
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             tabIndex={0}
             role="button"
-            className="btn btn-outline"
+            className="btn btn-outline w-full md:w-auto justify-center"
           >
             <FaFilter className="mr-2" /> Filter:{" "}
             {statusFilter === "all"
@@ -243,7 +228,7 @@ export default function DashboardUsers() {
           </motion.div>
           <ul
             tabIndex={0}
-            className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 mt-1 border border-base-300"
+            className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-full md:w-52 mt-1 border border-base-300"
           >
             <li>
               <a
@@ -280,7 +265,7 @@ export default function DashboardUsers() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="alert alert-error mb-6"
+            className="alert alert-error mb-4 sm:mb-6"
           >
             <span>{error}</span>
             <button
@@ -298,43 +283,41 @@ export default function DashboardUsers() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
-        className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6"
+        className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6"
       >
         <motion.div
-          whileHover={{ y: -5 }}
-          className="stat bg-base-100 rounded-box shadow-sm border border-base-300"
+          whileHover={{ y: -2 }}
+          className="stat bg-base-100 rounded-box shadow-sm border border-base-300 p-3 sm:p-4"
         >
           <div className="stat-figure text-primary">
-            <FaUserCircle className="text-3xl" />
+            <FaUserCircle className="text-2xl sm:text-3xl" />
           </div>
-          <div className="stat-title">Total Users</div>
-          <div className="stat-value text-primary">{count}</div>
+          <div className="stat-title text-sm sm:text-base">Total Users</div>
+          <div className="stat-value text-primary text-lg sm:text-2xl">
+            {count}
+          </div>
         </motion.div>
-
         <motion.div
-          whileHover={{ y: -5 }}
-          transition={{ delay: 0.1 }}
-          className="stat bg-base-100 rounded-box shadow-sm border border-base-300"
+          whileHover={{ y: -2 }}
+          className="stat bg-base-100 rounded-box shadow-sm border border-base-300 p-3 sm:p-4"
         >
           <div className="stat-figure text-success">
-            <FaUserCheck className="text-3xl" />
+            <FaUserCheck className="text-2xl sm:text-3xl" />
           </div>
-          <div className="stat-title">Clients</div>
-          <div className="stat-value text-success">
+          <div className="stat-title text-sm sm:text-base">Clients</div>
+          <div className="stat-value text-success text-lg sm:text-2xl">
             {users.filter((u) => u.groups.includes("Client")).length}
           </div>
         </motion.div>
-
         <motion.div
-          whileHover={{ y: -5 }}
-          transition={{ delay: 0.2 }}
-          className="stat bg-base-100 rounded-box shadow-sm border border-base-300"
+          whileHover={{ y: -2 }}
+          className="stat bg-base-100 rounded-box shadow-sm border border-base-300 p-3 sm:p-4"
         >
           <div className="stat-figure text-error">
-            <FaUserShield className="text-3xl" />
+            <FaUserShield className="text-2xl sm:text-3xl" />
           </div>
-          <div className="stat-title">Admins</div>
-          <div className="stat-value text-error">
+          <div className="stat-title text-sm sm:text-base">Admins</div>
+          <div className="stat-value text-error text-lg sm:text-2xl">
             {users.filter((u) => u.groups.includes("Admin")).length}
           </div>
         </motion.div>
@@ -345,10 +328,12 @@ export default function DashboardUsers() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex flex-col items-center justify-center py-20 bg-base-100 rounded-box border border-base-300"
+          className="flex flex-col items-center justify-center py-16 sm:py-20 bg-base-100 rounded-box border border-base-300"
         >
           <FaSpinner className="animate-spin text-4xl text-primary mb-4" />
-          <p className="text-base-content/60">Loading users...</p>
+          <p className="text-base-content/60 text-sm sm:text-base">
+            Loading users...
+          </p>
         </motion.div>
       )}
 
@@ -358,107 +343,108 @@ export default function DashboardUsers() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="bg-base-100 rounded-box shadow-sm overflow-hidden border border-base-300"
+          className="bg-base-100 rounded-box shadow-sm overflow-x-auto border border-base-300"
         >
-          <div className="overflow-x-auto">
-            <table className="table">
-              <thead>
+          <table className="table w-full">
+            <thead>
+              <tr>
+                <th className="bg-base-200">User</th>
+                <th className="bg-base-200">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex items-center font-semibold"
+                    onClick={() => handleSort("email")}
+                  >
+                    Email <SortIcon field="email" />
+                  </motion.button>
+                </th>
+                <th className="bg-base-200">Role</th>
+                <th className="bg-base-200">Change Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tableLoading ? (
                 <tr>
-                  <th className="bg-base-200">User</th>
-                  <th className="bg-base-200">
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="flex items-center font-semibold"
-                      onClick={() => handleSort("email")}
-                    >
-                      Email <SortIcon field="email" />
-                    </motion.button>
-                  </th>
-                  <th className="bg-base-200">Role</th>
-                  <th className="bg-base-200">Change Role</th>
+                  <td
+                    colSpan="4"
+                    className="text-center py-8 text-sm sm:text-base"
+                  >
+                    <FaSpinner className="animate-spin inline-block text-xl text-primary mr-2" />{" "}
+                    Loading more users...
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {tableLoading ? (
-                  <tr>
-                    <td colSpan="4" className="text-center py-8">
-                      <FaSpinner className="animate-spin inline-block text-xl text-primary mr-2" />
-                      Loading more users...
-                    </td>
-                  </tr>
-                ) : filteredUsers.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan="4"
-                      className="text-center py-8 text-base-content/60"
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="4"
+                    className="text-center py-8 text-base-content/60 text-sm sm:text-base"
+                  >
+                    {searchTerm || statusFilter !== "all"
+                      ? "No users match your search criteria"
+                      : "No users found"}
+                  </td>
+                </tr>
+              ) : (
+                <AnimatePresence mode="popLayout">
+                  {filteredUsers.map((u) => (
+                    <motion.tr
+                      key={u.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3 }}
+                      className="hover"
                     >
-                      {searchTerm || statusFilter !== "all"
-                        ? "No users match your search criteria"
-                        : "No users found"}
-                    </td>
-                  </tr>
-                ) : (
-                  <AnimatePresence mode="popLayout">
-                    {filteredUsers.map((u) => (
-                      <motion.tr
-                        key={u.id}
-                        layout
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className="hover"
-                      >
-                        <td>
-                          <div className="flex items-center gap-3">
-                            <div className="avatar">
-                              <div className="w-10 h-10 rounded-full">
-                                <img
-                                  src={
-                                    u.profile?.profile_picture ||
-                                    defaultProfileImage
-                                  }
-                                  alt={u.username}
-                                  className="object-cover"
-                                />
-                              </div>
+                      <td>
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="avatar w-10 h-10 sm:w-12 sm:h-12">
+                            <img
+                              src={
+                                u.profile?.profile_picture ||
+                                defaultProfileImage
+                              }
+                              alt={u.username}
+                              className="object-cover rounded-full w-full h-full"
+                            />
+                          </div>
+                          <div>
+                            <div className="font-bold text-sm sm:text-base">
+                              {u.username}
                             </div>
-                            <div>
-                              <div className="font-bold">{u.username}</div>
-                              <div className="text-sm text-base-content/60">
-                                {u.first_name} {u.last_name}
-                              </div>
+                            <div className="text-xs sm:text-sm text-base-content/60">
+                              {u.first_name} {u.last_name}
                             </div>
                           </div>
-                        </td>
-                        <td>{u.email}</td>
-                        <td>{getGroupBadge(u.groups)}</td>
-                        <td>
-                          <motion.select
-                            whileHover={{ scale: 1.02 }}
-                            className="select select-bordered select-sm w-full max-w-xs"
-                            value={u.groups[0] || ""}
-                            onChange={(e) =>
-                              handleGroupChange(u.id, e.target.value)
-                            }
-                            disabled={roleChangeLoading === u.id}
-                          >
-                            <option value="">Unassigned</option>
-                            <option value="Admin">Admin</option>
-                            <option value="Client">Client</option>
-                          </motion.select>
-                          {roleChangeLoading === u.id && (
-                            <FaSpinner className="animate-spin inline-block ml-2 text-primary" />
-                          )}
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </AnimatePresence>
-                )}
-              </tbody>
-            </table>
-          </div>
+                        </div>
+                      </td>
+                      <td className="text-sm sm:text-base">{u.email}</td>
+                      <td>{getGroupBadge(u.groups)}</td>
+                      <td>
+                        <motion.select
+                          whileHover={{ scale: 1.02 }}
+                          className="select select-bordered select-sm w-full max-w-xs"
+                          value={u.groups[0] || ""}
+                          onChange={(e) =>
+                            handleGroupChange(u.id, e.target.value)
+                          }
+                          disabled={roleChangeLoading === u.id}
+                        >
+                          <option value="">Unassigned</option>
+                          <option value="Admin">Admin</option>
+                          <option value="Client">Client</option>
+                        </motion.select>
+                        {roleChangeLoading === u.id && (
+                          <FaSpinner className="animate-spin inline-block ml-2 text-primary" />
+                        )}
+                      </td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              )}
+            </tbody>
+          </table>
         </motion.div>
       )}
 
@@ -468,12 +454,12 @@ export default function DashboardUsers() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
-          className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8"
+          className="flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 mt-4 sm:mt-6 w-full"
         >
-          <div className="text-sm text-base-content/60">
+          <div className="text-sm sm:text-base text-base-content/60 w-full sm:w-auto text-center sm:text-left">
             Showing {filteredUsers.length} of {count} users
           </div>
-          <div className="join">
+          <div className="join self-center">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -489,7 +475,6 @@ export default function DashboardUsers() {
               else if (page <= 3) pageNum = i + 1;
               else if (page >= totalPages - 2) pageNum = totalPages - 4 + i;
               else pageNum = page - 2 + i;
-
               return (
                 <motion.button
                   key={pageNum}

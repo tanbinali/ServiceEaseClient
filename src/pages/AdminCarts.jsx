@@ -15,10 +15,7 @@ import {
   FaUsers,
   FaShoppingCart,
   FaExclamationTriangle,
-  FaEye,
   FaSearch,
-  FaFilter,
-  FaSortAmountDown,
 } from "react-icons/fa";
 import defaultImage from "../assets/default-image.jpg";
 
@@ -37,17 +34,13 @@ const AdminCarts = () => {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { duration: 0.5 } },
   };
-
   const slideUp = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
+  const stagger = { visible: { transition: { staggerChildren: 0.1 } } };
 
-  const stagger = {
-    visible: { transition: { staggerChildren: 0.1 } },
-  };
-
-  // Helper to format duration
+  // Helpers for durations
   const formatDuration = (duration) => {
     if (!duration) return "0h 0m";
     const parts = duration.split(":").map(Number);
@@ -55,8 +48,6 @@ const AdminCarts = () => {
     const [hours, minutes] = parts;
     return `${hours}h ${minutes}m`;
   };
-
-  // Helper for total duration
   const renderTotalDuration = (seconds) => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -75,7 +66,6 @@ const AdminCarts = () => {
           if (!cart.items || cart.items.length === 0) {
             return { ...cart, items: [], totalPrice: 0, totalDuration: 0 };
           }
-
           const itemsWithDetails = await Promise.all(
             cart.items.map(async (item) => {
               try {
@@ -208,7 +198,6 @@ const AdminCarts = () => {
     }
   };
 
-  // Filter and sort carts
   const filteredCarts = carts
     .filter((cart) => {
       const matchesSearch =
@@ -250,7 +239,7 @@ const AdminCarts = () => {
         initial="hidden"
         animate="visible"
         variants={fadeIn}
-        className="min-h-screen flex items-center justify-center bg-base-100"
+        className="min-h-screen flex items-center justify-center bg-base-100 p-4"
       >
         <div className="text-center">
           <FaSpinner className="animate-spin text-4xl text-primary mx-auto mb-4" />
@@ -266,9 +255,9 @@ const AdminCarts = () => {
         initial="hidden"
         animate="visible"
         variants={fadeIn}
-        className="min-h-screen flex items-center justify-center bg-base-100"
+        className="min-h-screen flex items-center justify-center bg-base-100 p-4"
       >
-        <div className="text-center p-8 bg-base-200 rounded-2xl max-w-md">
+        <div className="text-center p-6 sm:p-8 bg-base-200 rounded-2xl max-w-md">
           <div className="bg-error/10 rounded-full p-4 inline-block mb-4">
             <FaExclamationTriangle className="text-3xl text-error" />
           </div>
@@ -292,9 +281,9 @@ const AdminCarts = () => {
       initial="hidden"
       animate="visible"
       variants={fadeIn}
-      className="min-h-screen bg-base-100 py-8"
+      className="min-h-screen bg-base-100 py-8 px-2 sm:px-4 md:px-6 lg:px-8"
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <motion.div variants={slideUp} className="text-center mb-8">
           <div className="flex justify-center mb-4">
@@ -307,10 +296,10 @@ const AdminCarts = () => {
               <FaShoppingCart className="text-4xl text-primary" />
             </motion.div>
           </div>
-          <h1 className="text-4xl font-bold text-base-content mb-2">
+          <h1 className="text-3xl sm:text-4xl font-bold text-base-content mb-2">
             Admin Cart Management
           </h1>
-          <p className="text-base-content/70">
+          <p className="text-base-content/70 text-sm sm:text-base">
             Manage and monitor all user shopping carts
           </p>
         </motion.div>
@@ -320,7 +309,7 @@ const AdminCarts = () => {
           variants={stagger}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8"
         >
           {[
             {
@@ -358,19 +347,19 @@ const AdminCarts = () => {
               key={index}
               variants={slideUp}
               transition={{ delay: stat.delay }}
-              whileHover={{ y: -5 }}
-              className="bg-base-200 p-6 rounded-2xl shadow-sm border border-base-300"
+              whileHover={{ y: -2 }}
+              className="bg-base-200 p-4 sm:p-6 rounded-2xl shadow-sm border border-base-300 flex items-center gap-3"
             >
-              <div className="flex items-center">
-                <div className={`rounded-2xl bg-${stat.color}/10 p-3 mr-4`}>
-                  <stat.icon className={`text-2xl text-${stat.color}`} />
-                </div>
-                <div>
-                  <p className="text-sm text-base-content/60">{stat.label}</p>
-                  <h3 className="text-2xl font-bold text-base-content">
-                    {stat.value}
-                  </h3>
-                </div>
+              <div className={`rounded-2xl bg-${stat.color}/10 p-3`}>
+                <stat.icon className={`text-2xl text-${stat.color}`} />
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm text-base-content/60">
+                  {stat.label}
+                </p>
+                <h3 className="text-lg sm:text-2xl font-bold text-base-content">
+                  {stat.value}
+                </h3>
               </div>
             </motion.div>
           ))}
@@ -381,10 +370,10 @@ const AdminCarts = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="bg-base-200 rounded-2xl shadow-sm border border-base-300 p-6 mb-8"
+          className="bg-base-200 rounded-2xl shadow-sm border border-base-300 p-4 sm:p-6 mb-8"
         >
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            <div className="relative w-full lg:w-96">
+          <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+            <div className="relative w-full sm:w-80">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <FaSearch className="text-base-content/40" />
               </div>
@@ -393,14 +382,13 @@ const AdminCarts = () => {
                 placeholder="Search carts by ID, user, or service..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="input input-bordered w-full pl-10"
+                className="input input-bordered w-full pl-10 text-sm sm:text-base"
               />
             </div>
-
-            <div className="flex gap-2 w-full lg:w-auto">
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
               <motion.select
                 whileHover={{ scale: 1.02 }}
-                className="select select-bordered"
+                className="select select-bordered text-sm"
                 value={filterBy}
                 onChange={(e) => setFilterBy(e.target.value)}
               >
@@ -408,10 +396,9 @@ const AdminCarts = () => {
                 <option value="hasItems">With Items</option>
                 <option value="empty">Empty Carts</option>
               </motion.select>
-
               <motion.select
                 whileHover={{ scale: 1.02 }}
-                className="select select-bordered"
+                className="select select-bordered text-sm"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
               >
@@ -434,15 +421,15 @@ const AdminCarts = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="text-center py-16 bg-base-200 rounded-2xl border border-base-300"
+              className="text-center py-8 sm:py-16 bg-base-200 rounded-2xl border border-base-300"
             >
-              <div className="bg-base-100 rounded-full p-4 inline-block mb-4">
-                <FaBoxOpen className="text-4xl text-base-content/60" />
+              <div className="bg-base-100 rounded-full p-3 inline-block mb-3 sm:mb-4">
+                <FaBoxOpen className="text-3xl sm:text-4xl text-base-content/60" />
               </div>
-              <h3 className="text-xl font-semibold text-base-content mb-2">
+              <h3 className="text-lg sm:text-xl font-semibold text-base-content mb-2">
                 No carts found
               </h3>
-              <p className="text-base-content/70 mb-6">
+              <p className="text-base-content/70 mb-4 sm:mb-6">
                 {searchTerm
                   ? "Try adjusting your search criteria"
                   : "No carts match the current filters"}
@@ -455,7 +442,7 @@ const AdminCarts = () => {
                   setFilterBy("all");
                   setSortBy("newest");
                 }}
-                className="btn btn-primary"
+                className="btn btn-primary btn-sm sm:btn-md"
               >
                 Clear Filters
               </motion.button>
@@ -465,7 +452,7 @@ const AdminCarts = () => {
               variants={stagger}
               initial="hidden"
               animate="visible"
-              className="space-y-6"
+              className="space-y-4 sm:space-y-6"
             >
               {filteredCarts.map((cart) => (
                 <motion.div
@@ -475,44 +462,43 @@ const AdminCarts = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="bg-base-100 rounded-2xl shadow-lg border border-base-300 p-6"
+                  className="bg-base-100 rounded-2xl shadow-lg border border-base-300 p-4 sm:p-6"
                 >
                   {/* Cart Header */}
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-                    <div className="flex items-center gap-4">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4 sm:mb-6">
+                    <div className="flex items-center gap-3 flex-wrap">
                       <motion.div
                         whileHover={{ rotate: 5 }}
-                        className="bg-primary/10 p-3 rounded-2xl"
+                        className="bg-primary/10 p-2 sm:p-3 rounded-2xl"
                       >
-                        <FaUserCircle className="text-2xl text-primary" />
+                        <FaUserCircle className="text-xl sm:text-2xl text-primary" />
                       </motion.div>
                       <div>
-                        <h3 className="text-lg font-semibold text-base-content">
+                        <h3 className="text-sm sm:text-base font-semibold text-base-content">
                           Cart #{cart.id}
                         </h3>
-                        <p className="text-base-content/60">
+                        <p className="text-xs sm:text-sm text-base-content/60">
                           User ID: {cart.user}
                         </p>
                       </div>
                     </div>
-
-                    <div className="flex flex-wrap gap-4">
+                    <div className="flex flex-wrap gap-2">
                       <motion.div
                         whileHover={{ scale: 1.05 }}
-                        className="badge badge-primary badge-lg gap-2"
+                        className="badge badge-primary badge-sm sm:badge-lg gap-1 sm:gap-2"
                       >
                         <FaDollarSign />${cart.totalPrice.toFixed(2)}
                       </motion.div>
                       <motion.div
                         whileHover={{ scale: 1.05 }}
-                        className="badge badge-secondary badge-lg gap-2"
+                        className="badge badge-secondary badge-sm sm:badge-lg gap-1 sm:gap-2"
                       >
                         <FaClock />
                         {renderTotalDuration(cart.totalDuration)}
                       </motion.div>
                       <motion.div
                         whileHover={{ scale: 1.05 }}
-                        className="badge badge-accent badge-lg gap-2"
+                        className="badge badge-accent badge-sm sm:badge-lg gap-1 sm:gap-2"
                       >
                         <FaCheckCircle />
                         {cart.itemCount} item{cart.itemCount !== 1 ? "s" : ""}
@@ -525,13 +511,15 @@ const AdminCarts = () => {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="text-center py-8 bg-base-200 rounded-xl"
+                      className="text-center py-4 sm:py-6 bg-base-200 rounded-xl"
                     >
-                      <FaBoxOpen className="text-3xl text-base-content/60 mx-auto mb-2" />
-                      <p className="text-base-content/60">This cart is empty</p>
+                      <FaBoxOpen className="text-2xl sm:text-3xl text-base-content/60 mx-auto mb-1 sm:mb-2" />
+                      <p className="text-xs sm:text-sm text-base-content/60">
+                        This cart is empty
+                      </p>
                     </motion.div>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-2 sm:space-y-4">
                       <AnimatePresence>
                         {cart.items.map((item) => {
                           const isUnavailable = !item.service_available;
@@ -543,23 +531,23 @@ const AdminCarts = () => {
                               animate={{ opacity: 1, scale: 1 }}
                               exit={{ opacity: 0, scale: 0.9 }}
                               transition={{ duration: 0.2 }}
-                              className={`flex items-center justify-between p-4 rounded-xl border ${
+                              className={`flex flex-col sm:flex-row sm:items-center justify-between p-2 sm:p-4 rounded-xl border ${
                                 isUnavailable
                                   ? "border-error/30 bg-error/10"
                                   : "border-base-300 bg-base-200"
                               }`}
                             >
                               {/* Item Info */}
-                              <div className="flex items-center gap-4 flex-1 min-w-0">
+                              <div className="flex items-center gap-3 flex-1 min-w-0 mb-2 sm:mb-0">
                                 <motion.img
                                   whileHover={{ scale: 1.05 }}
                                   src={item.image}
                                   alt={item.service_name}
-                                  className="w-16 h-16 object-cover rounded-lg border border-base-300"
+                                  className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg border border-base-300"
                                 />
                                 <div className="flex-1 min-w-0">
                                   <h4
-                                    className={`font-semibold truncate ${
+                                    className={`font-semibold truncate text-sm sm:text-base ${
                                       isUnavailable
                                         ? "text-error"
                                         : "text-base-content"
@@ -567,12 +555,12 @@ const AdminCarts = () => {
                                   >
                                     {item.service_name}
                                     {isUnavailable && (
-                                      <span className="badge badge-error ml-2 text-xs">
+                                      <span className="badge badge-error ml-1 sm:ml-2 text-[8px] sm:text-xs">
                                         Unavailable
                                       </span>
                                     )}
                                   </h4>
-                                  <div className="flex flex-wrap gap-3 text-sm text-base-content/60 mt-1">
+                                  <div className="flex flex-wrap gap-2 text-xs sm:text-sm text-base-content/60 mt-1">
                                     <span>${item.price} each</span>
                                     <span>•</span>
                                     <span>{formatDuration(item.duration)}</span>
@@ -605,7 +593,7 @@ const AdminCarts = () => {
                                       updatingItem === item.id ||
                                       item.quantity <= 1
                                     }
-                                    className="btn btn-xs btn-ghost"
+                                    className="btn btn-ghost btn-xs"
                                   >
                                     <FaMinus className="w-3 h-3" />
                                   </motion.button>
@@ -626,7 +614,7 @@ const AdminCarts = () => {
                                       updatingItem === item.id ||
                                       !item.service_available
                                     }
-                                    className="btn btn-xs btn-ghost"
+                                    className="btn btn-ghost btn-xs"
                                   >
                                     <FaPlus className="w-3 h-3" />
                                   </motion.button>
@@ -638,7 +626,7 @@ const AdminCarts = () => {
                                     handleRemoveItem(cart.id, item.id)
                                   }
                                   disabled={updatingItem === item.id}
-                                  className="btn btn-xs btn-error ml-2"
+                                  className="btn btn-error btn-xs ml-1 sm:ml-2"
                                   aria-label="Remove"
                                 >
                                   {updatingItem === item.id ? (
