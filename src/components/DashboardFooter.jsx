@@ -10,7 +10,7 @@ const DashboardFooter = () => {
           © {new Date().getFullYear()} ServiceEase. Made with{" "}
           <FaHeart className="text-red-500 inline" /> by{" "}
           <a
-            href="https://github.com/tanbinali"
+            href="https://mdtanbinali-portfolio.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
             className="text-white hover:text-gray-400 underline transition-colors"

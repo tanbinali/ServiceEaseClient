@@ -42,33 +42,37 @@ const Dashboard = () => {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
   };
+
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.6, ease: "easeOut" },
+      transition: { duration: 0.4, ease: "easeOut" },
     },
   };
+
   const cardVariants = {
-    hidden: { opacity: 0, scale: 0.9 },
+    hidden: { opacity: 0, scale: 0.95 },
     visible: {
       opacity: 1,
       scale: 1,
-      transition: { duration: 0.5, ease: "easeOut" },
+      transition: { duration: 0.4, ease: "easeOut" },
     },
   };
+
   const imageVariants = {
     hidden: { scale: 0.8, opacity: 0 },
     visible: {
       scale: 1,
       opacity: 1,
-      transition: { duration: 0.5, ease: "easeOut" },
+      transition: { duration: 0.4, ease: "easeOut" },
     },
-    hover: { scale: 1.05, transition: { duration: 0.2, ease: "easeInOut" } },
+    hover: { scale: 1.05, transition: { duration: 0.2 } },
   };
+
   const buttonVariants = {
-    hover: { scale: 1.05, transition: { duration: 0.2, ease: "easeInOut" } },
+    hover: { scale: 1.05, transition: { duration: 0.2 } },
     tap: { scale: 0.95 },
   };
 
@@ -153,7 +157,7 @@ const Dashboard = () => {
 
   if (loading)
     return (
-      <div className="flex justify-center items-center min-h-96">
+      <div className="flex justify-center items-center min-h-64">
         <motion.div
           animate={{ rotate: 360, scale: [1, 1.2, 1] }}
           transition={{
@@ -167,26 +171,36 @@ const Dashboard = () => {
 
   if (!userProfile)
     return (
-      <div className="text-center py-12">
-        <p className="text-error">Profile not found</p>
+      <div className="text-center py-8">
+        <p className="text-error text-lg">Profile not found</p>
       </div>
     );
 
   return (
     <motion.div
-      className="max-w-4xl mx-auto p-6 space-y-8 bg-white rounded-3xl shadow-xl"
+      className="w-full space-y-6"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
       {/* Header */}
       <motion.div
-        className="flex justify-between items-center"
+        className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4"
         variants={itemVariants}
       >
-        <h1 className="text-3xl font-extrabold text-gray-900">My Dashboard</h1>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-base-content">
+            My Dashboard
+          </h1>
+          <p className="text-base-content/60 mt-1">
+            Welcome back,{" "}
+            {userProfile.profile?.full_name || userProfile.username}!
+          </p>
+        </div>
         <motion.button
-          className={`btn ${editMode ? "btn-error" : "btn-primary"} gap-2`}
+          className={`btn ${
+            editMode ? "btn-error" : "btn-primary"
+          } gap-2 w-full sm:w-auto`}
           onClick={() => setEditMode(!editMode)}
           aria-label={editMode ? "Cancel Edit Profile" : "Edit Profile"}
           variants={buttonVariants}
@@ -195,11 +209,11 @@ const Dashboard = () => {
         >
           {editMode ? (
             <>
-              <FaTimes /> Cancel
+              <FaTimes className="text-sm" /> Cancel
             </>
           ) : (
             <>
-              <FaEdit /> Edit Profile
+              <FaEdit className="text-sm" /> Edit Profile
             </>
           )}
         </motion.button>
@@ -207,10 +221,10 @@ const Dashboard = () => {
 
       {/* Profile Section */}
       <motion.div
-        className="bg-gray-50 p-8 rounded-2xl shadow-inner border border-gray-200"
+        className="bg-base-100 p-4 md:p-6 lg:p-8 rounded-xl border border-base-300 shadow-sm"
         variants={cardVariants}
       >
-        <div className="flex flex-col lg:flex-row gap-10 items-center lg:items-start">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-center lg:items-start">
           {/* Profile Image */}
           <div className="flex flex-col items-center">
             <motion.div
@@ -225,18 +239,18 @@ const Dashboard = () => {
                   defaultImg
                 }
                 alt={userProfile.profile?.full_name || userProfile.username}
-                className="w-36 h-36 rounded-3xl object-cover shadow-lg border-4 border-gray-200"
+                className="w-28 h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-2xl lg:rounded-3xl object-cover shadow-md border-4 border-base-200"
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
               />
               {editMode && (
                 <motion.label
-                  className="absolute bottom-2 right-2 bg-primary text-primary-content p-3 rounded-full cursor-pointer shadow-lg hover:bg-primary-focus transition"
+                  className="absolute -bottom-2 -right-2 bg-primary text-primary-content p-2 md:p-3 rounded-full cursor-pointer shadow-lg hover:bg-primary-focus transition"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >
-                  <FaImage className="w-5 h-5" />
+                  <FaImage className="w-4 h-4 md:w-5 md:h-5" />
                   <input
                     type="file"
                     {...register("profile_picture")}
@@ -248,10 +262,10 @@ const Dashboard = () => {
             </motion.div>
             {previewUrl && (
               <motion.p
-                className="text-sm text-gray-400 mt-2"
+                className="text-xs md:text-sm text-base-content/40 mt-3 text-center"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
               >
                 New image preview
               </motion.p>
@@ -259,7 +273,7 @@ const Dashboard = () => {
           </div>
 
           {/* Profile Info / Form */}
-          <div className="flex-1 w-full max-w-xl">
+          <div className="flex-1 w-full max-w-2xl">
             <AnimatePresence mode="wait">
               {!editMode ? (
                 <motion.div
@@ -269,13 +283,15 @@ const Dashboard = () => {
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <h2 className="text-3xl font-bold text-gray-900 mb-3">
+                  <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-base-content mb-2">
                     {userProfile.profile?.full_name || userProfile.username}
                   </h2>
-                  <p className="text-gray-600 mb-6">@{userProfile.username}</p>
+                  <p className="text-base-content/60 mb-4 md:mb-6">
+                    @{userProfile.username}
+                  </p>
 
                   <motion.div
-                    className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-700"
+                    className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 text-base-content"
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
@@ -316,6 +332,7 @@ const Dashboard = () => {
                         label="Bio"
                         value={userProfile.profile.bio}
                         icon="info"
+                        fullWidth
                       />
                     )}
                   </motion.div>
@@ -324,14 +341,14 @@ const Dashboard = () => {
                 <motion.form
                   key="edit-mode"
                   onSubmit={handleSubmit(onSubmit)}
-                  className="space-y-6"
+                  className="space-y-4 md:space-y-6"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3 }}
                 >
                   <motion.div
-                    className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                    className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
@@ -365,17 +382,21 @@ const Dashboard = () => {
                       label="Date of Birth"
                       {...register("date_of_birth")}
                     />
-                    <InputField
-                      label="Address"
-                      {...register("address")}
-                      fullWidth
-                    />
-                    <TextAreaField label="Bio" {...register("bio")} />
+                    <div className="md:col-span-2">
+                      <InputField
+                        label="Address"
+                        {...register("address")}
+                        fullWidth
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <TextAreaField label="Bio" {...register("bio")} />
+                    </div>
                   </motion.div>
 
                   <motion.button
                     type="submit"
-                    className={`btn btn-primary gap-2 w-full ${
+                    className={`btn btn-primary gap-2 w-full md:w-auto ${
                       saving ? "loading" : ""
                     }`}
                     disabled={saving}
@@ -383,7 +404,8 @@ const Dashboard = () => {
                     whileHover="hover"
                     whileTap="tap"
                   >
-                    <FaSave /> {saving ? "Saving..." : "Save Changes"}
+                    <FaSave className="text-sm" />
+                    {saving ? "Saving..." : "Save Changes"}
                   </motion.button>
                 </motion.form>
               )}
@@ -392,8 +414,11 @@ const Dashboard = () => {
         </div>
       </motion.div>
 
+      {/* Service History */}
       {userProfile.profile?.service_history?.length > 0 && (
-        <ServiceHistory history={userProfile.profile.service_history} />
+        <motion.div variants={itemVariants}>
+          <ServiceHistory history={userProfile.profile.service_history} />
+        </motion.div>
       )}
     </motion.div>
   );

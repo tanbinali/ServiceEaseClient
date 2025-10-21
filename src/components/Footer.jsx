@@ -172,7 +172,7 @@ const Footer = () => {
             <FaHeart className="text-white hover:text-gray-400 transition-colors inline mx-1" />{" "}
             by{" "}
             <a
-              href="https://github.com/tanbinali"
+              href="https://mdtanbinali-portfolio.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-white hover:text-gray-400 underline transition-colors"

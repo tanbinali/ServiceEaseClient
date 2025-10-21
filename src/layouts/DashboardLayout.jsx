@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuthContext } from "../contexts/AuthContext";
 import logo from "../assets/logo.png";
 import defaultImg from "../assets/default_profile.png";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FaCube,
   FaTags,
@@ -14,6 +14,7 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaSignOutAlt,
+  FaBars,
 } from "react-icons/fa";
 import DashboardFooter from "../components/DashboardFooter";
 import { FaUser } from "react-icons/fa6";
@@ -29,13 +30,23 @@ const dashboardLinks = [
 ];
 
 const sidebarVariants = {
-  open: { width: 256, transition: { duration: 0.3, ease: "easeInOut" } },
-  closed: { width: 64, transition: { duration: 0.3, ease: "easeInOut" } },
+  mobileOpen: {
+    x: 0,
+    transition: { duration: 0.3, ease: "easeInOut" },
+  },
+  mobileClosed: {
+    x: "-100%",
+    transition: { duration: 0.3, ease: "easeInOut" },
+  },
+  desktop: {
+    width: 256,
+    transition: { duration: 0.3, ease: "easeInOut" },
+  },
 };
 
-const contentVariants = {
-  open: { marginLeft: 256, transition: { duration: 0.3, ease: "easeInOut" } },
-  closed: { marginLeft: 64, transition: { duration: 0.3, ease: "easeInOut" } },
+const overlayVariants = {
+  open: { opacity: 1, transition: { duration: 0.3 } },
+  closed: { opacity: 0, transition: { duration: 0.3 } },
 };
 
 const linkVariants = {
@@ -49,10 +60,43 @@ const linkVariants = {
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const { user, logoutUser } = useAuthContext();
   const location = useLocation();
 
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  // Check if mobile on mount and resize
+  useEffect(() => {
+    const checkIfMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+
+    return () => {
+      window.removeEventListener("resize", checkIfMobile);
+    };
+  }, []);
+
+  const toggleSidebar = () => {
+    // Only allow toggling on mobile devices
+    if (isMobile) {
+      setSidebarOpen(!sidebarOpen);
+    }
+  };
+
+  const closeSidebar = () => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  };
+
   const isActiveLink = (href) => location.pathname === href;
 
   // Filter links based on user group
@@ -78,49 +122,72 @@ const DashboardLayout = () => {
       return true;
     });
 
+  // Determine sidebar variants based on device
+  const getSidebarVariant = () => {
+    if (isMobile) {
+      return sidebarOpen ? "mobileOpen" : "mobileClosed";
+    }
+    return "desktop"; // Always open on desktop
+  };
+
   return (
-    <div className="flex min-h-screen bg-base-100">
+    <div className="flex min-h-screen bg-base-100 relative">
+      {/* Mobile Overlay */}
+      <AnimatePresence>
+        {isMobile && sidebarOpen && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            initial="closed"
+            animate="open"
+            exit="closed"
+            variants={overlayVariants}
+            onClick={closeSidebar}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
       <motion.aside
-        className="bg-base-200 border-r border-base-300 flex flex-col fixed h-full z-40"
-        initial={false}
-        animate={sidebarOpen ? "open" : "closed"}
+        className="bg-base-200 border-r border-base-300 flex flex-col fixed h-full z-50 w-64"
+        initial={isMobile ? "mobileClosed" : "desktop"}
+        animate={getSidebarVariant()}
         variants={sidebarVariants}
       >
-        <div className={`flex flex-col h-full ${sidebarOpen ? "p-6" : "p-4"}`}>
-          {/* Logo and Toggle */}
+        <div className="flex flex-col h-full p-6">
+          {/* Logo and Toggle - Only show toggle on mobile */}
           <div className="flex items-center justify-between mb-8">
-            {sidebarOpen && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Link to="/" className="flex items-center gap-2">
-                  <img
-                    src={logo}
-                    alt="ServiceEase Logo"
-                    className="h-8 w-auto"
-                  />
-                  <span className="text-xl font-bold text-primary">
-                    ServiceEase
-                  </span>
-                </Link>
-              </motion.div>
-            )}
-            <motion.button
-              onClick={toggleSidebar}
-              className="btn btn-ghost btn-sm btn-circle"
-              aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
             >
-              {sidebarOpen ? <FaChevronLeft /> : <FaChevronRight />}
-            </motion.button>
+              <Link
+                to="/"
+                className="flex items-center gap-2"
+                onClick={closeSidebar}
+              >
+                <img src={logo} alt="ServiceEase Logo" className="h-8 w-auto" />
+                <span className="text-xl font-bold text-primary">
+                  ServiceEase
+                </span>
+              </Link>
+            </motion.div>
+            {/* Only show toggle button on mobile */}
+            {isMobile && (
+              <motion.button
+                onClick={toggleSidebar}
+                className="btn btn-ghost btn-sm btn-circle"
+                aria-label="Close sidebar"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <FaChevronLeft />
+              </motion.button>
+            )}
           </div>
 
           {/* User Info */}
-          {sidebarOpen && user && (
+          {user && (
             <motion.div
               className="flex items-center gap-3 mb-6 p-3 rounded-xl bg-base-300"
               initial={{ opacity: 0, y: -10 }}
@@ -157,12 +224,12 @@ const DashboardLayout = () => {
               >
                 <Link
                   to={link.href}
+                  onClick={closeSidebar}
                   className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
                     isActiveLink(link.href)
                       ? "bg-primary text-primary-content shadow-lg"
                       : "text-base-content hover:bg-base-300 hover:text-primary"
-                  } ${!sidebarOpen ? "justify-center" : ""}`}
-                  title={!sidebarOpen ? link.label : ""}
+                  }`}
                 >
                   <motion.span
                     className="text-lg"
@@ -171,53 +238,67 @@ const DashboardLayout = () => {
                   >
                     {link.icon}
                   </motion.span>
-                  {sidebarOpen && (
-                    <motion.span
-                      className="font-medium"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {link.label}
-                    </motion.span>
-                  )}
+                  <motion.span
+                    className="font-medium"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {link.label}
+                  </motion.span>
                 </Link>
               </motion.div>
             ))}
           </nav>
 
           {/* Logout Button */}
-          {sidebarOpen && (
-            <motion.div
-              className="pt-4 border-t border-base-300"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3, duration: 0.3 }}
+          <motion.div
+            className="pt-4 border-t border-base-300"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.3 }}
+          >
+            <motion.button
+              onClick={() => {
+                closeSidebar();
+                logoutUser();
+              }}
+              className="flex items-center gap-3 p-3 rounded-xl text-error hover:bg-error hover:text-error-content transition-all w-full"
+              whileHover={{ x: 5 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <motion.button
-                onClick={logoutUser}
-                className="flex items-center gap-3 p-3 rounded-xl text-error hover:bg-error hover:text-error-content transition-all w-full"
-                whileHover={{ x: 5 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <FaSignOutAlt className="text-lg" />
-                <span className="font-medium">Logout</span>
-              </motion.button>
-            </motion.div>
-          )}
+              <FaSignOutAlt className="text-lg" />
+              <span className="font-medium">Logout</span>
+            </motion.button>
+          </motion.div>
         </div>
       </motion.aside>
 
       {/* Main Content */}
-      <motion.div
-        className="flex-1 flex flex-col"
-        initial={false}
-        animate={sidebarOpen ? "open" : "closed"}
-        variants={contentVariants}
-      >
-        <main className="flex-1 p-6">
+      <div className={`flex-1 flex flex-col ${isMobile ? "w-full" : "ml-64"}`}>
+        {/* Mobile Header */}
+        {isMobile && (
+          <div className="bg-base-100 border-b border-base-300 p-4 flex items-center justify-between md:hidden">
+            <button
+              onClick={toggleSidebar}
+              className="btn btn-ghost btn-sm btn-circle"
+              aria-label="Open sidebar"
+            >
+              <FaBars />
+            </button>
+            <Link to="/" className="flex items-center gap-2">
+              <img src={logo} alt="ServiceEase Logo" className="h-6 w-auto" />
+              <span className="text-lg font-bold text-primary">
+                ServiceEase
+              </span>
+            </Link>
+            <div className="w-6"></div> {/* Spacer for balance */}
+          </div>
+        )}
+
+        <main className={`flex-1 ${isMobile ? "p-4" : "p-6"}`}>
           <motion.div
-            className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-6 min-h-[calc(100vh-12rem)]"
+            className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-4 md:p-6 min-h-[calc(100vh-8rem)] md:min-h-[calc(100vh-12rem)]"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
@@ -230,7 +311,7 @@ const DashboardLayout = () => {
         <footer className="bg-base-100 border-t border-base-300">
           <DashboardFooter />
         </footer>
-      </motion.div>
+      </div>
     </div>
   );
 };
